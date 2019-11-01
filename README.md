@@ -1,8 +1,8 @@
 # Mars Invasion
-[Play](grahamhaynie.space)
+[Play](www.grahamhaynie.space)
 
 ## About:
-Create for ECE 4525 - Video Game Design and Engineering by Graham Haynie. This game covers the following topics: Game loop game architecture, action + interaction, background tile-map, perspectives and views, FSM / state-based design, motion and physics, modelling intelligent behavior. 
+Create as the final project for ECE 4525 - Video Game Design and Engineering by Graham Haynie. This game covers the following topics: Game loop game architecture, action + interaction, background tile-map, perspectives and views, FSM / state-based design, motion and physics, modelling intelligent behavior. 
 
 ## File structure:
 - **/src** primary source code (javascript) 
@@ -16,5 +16,5 @@ Create for ECE 4525 - Video Game Design and Engineering by Graham Haynie. This g
 - [Quantum font](https://www.dafont.com/gregory-quot-sesohq-quot-ortiz.d7042)
 
 ## Running:
-Either visit the [live version](grahamhaynie.space), or follow the instructions below:
+Either visit the [live version](www.grahamhaynie.space), or follow the instructions below:
 
