@@ -8,9 +8,13 @@ html, body {
     margin: 0;
     display: flex;
   
-    /* This centers our sketch horizontally. */
+    /* center sketch horizontally. */
     justify-content: center;
   
-    /* This centers our sketch vertically. */
+    /* center sketch vertically. */
     align-items: center;
+  }
+
+  p {
+    text-align: center
   }
