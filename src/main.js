@@ -28,10 +28,6 @@ function preload(){
 function setup() {
     // position canvas in center of screen
     var canvas = createCanvas(600, 600);
-    var x = (windowWidth - width) / 2;
-    var y = (windowHeight - height) / 2;
-    canvas.position(x, y);
-
     game.setup();
 };
 
