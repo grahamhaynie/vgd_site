@@ -20,7 +20,7 @@ var zapline = function(x1, y1, x2, y2){
     this.draw = function(){
         stroke(0, 0, 0, 100);
         strokeWeight(4);
-        line(this.x1, this.y1, this.x2, this.y2);
+        //line(this.x1, this.y1, this.x2, this.y2);
 
         // draw points
         stroke(20, 201, 35);

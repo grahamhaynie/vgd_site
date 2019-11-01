@@ -10,11 +10,23 @@ var menuObject = function(){
     // 3 = options
     // 4 = menu box during gameplay
     // 5 = menu if clicked during gameplay
-    
     this.state = 0;
+    // nextState is used for animation
+    this.nextState = 0;
 
     // add a hover effect to menu items
     this.hover = '';
+
+    // if this bool is set, transitioning between states
+    this.transition = false;
+    this.transitionTimer = 0;
+
+    // flags for when returning to menu or loading a level
+    this.loadLevel = false;
+    this.menuReturn = false; 
+
+    // vault door for animating transition between states
+    this.vd = new vaultdoor();
 
     // add lines to draw title animation
     this.zaplines = [];
@@ -216,6 +228,39 @@ var menuObject = function(){
             this.drawMenuBox(3*(width/6), width/8, width/4, width/12, 'Continue', false);
         }
 
+        // if transitioning between states, draw vault door
+        if(this.transitionTimer > 0 && this.transition){
+            this.vd.draw();
+            this.vd.update();
+            this.transitionTimer--;
+        }
+        // want state to change halfway through timer, so when doors open
+        // shows next screen
+        if(this.transitionTimer === 35){
+            // load game's level
+            if(this.loadLevel){
+                game.loadLevel(this.nextLevel);
+                this.loadLevel = false;
+            }
+            // return to menu
+            if(this.menuReturn){
+                game.state = 0;
+            }
+
+            this.state = this.nextState;
+        }
+        // if done transitioning, mark state and update flag
+        else if(this.transitionTimer === 0 && this.transition){
+            this.transition = false;
+            this.vd.reset();
+            
+            // return to menu
+            if(this.menuReturn){
+                game.setup();
+                this.menuReturn = false;
+            }
+        }
+
     };
 
     // ---------------------------------------------
@@ -223,42 +268,54 @@ var menuObject = function(){
     // update state according to where mouse is clicked
     this.updateClick = function(){
         // main menu
-        if(this.state === 0){
+        if(this.state === 0 && this.transitionTimer === 0){
             // if click select level, then move to select level menu
             if(mouseY > width/2 && mouseY < width/2 + width/8
                 && mouseX > width/6 && mouseX < width/6 + 2*(width/3)){
-                this.state = 1;
+                this.nextState = 1;
+                this.transitionTimer = 75;
+                this.transition = true;
             }
             // if click instructions, move to instructions screen
             else if(mouseY > 4*(width/6) && mouseY < 4*(width/6) + width/8
                 && mouseX > width/6 && mouseX < width/6 + 2*(width/3)){
-                this.state = 2;
+                this.nextState = 2;
+                this.transitionTimer = 75;
+                this.transition = true;
             }
             // and if click options, move to options screen
             else if(mouseY > 5*(width/6) && mouseY < 5*(width/6) + width/8
                 && mouseX > width/6 && mouseX < width/6 + 2*(width/3)){
-                this.state = 3;
+                this.nextState = 3;
+                this.transitionTimer = 75;
+                this.transition = true;
             }
         }
 
         // level selection - 
         // if player is in menu and selects a level, update game's level
         //attempt to load levels, first checking if levels are valid
-        else if(this.state === 1){
+        else if(this.state === 1 && this.transitionTimer === 0){
             // first row of levels
             if(mouseY > width/4 && mouseY < width/4 + width/6){
                 // first column
                 if(mouseX > width/24 && mouseX < 7*(width/24)){
                     if(0 < game.levels.length){
-                        game.loadLevel(0);
-                        this.state = 4;
+                        this.nextLevel = 0;
+                        this.loadLevel = true;
+                        this.nextState = 4;
+                        this.transitionTimer = 75;
+                        this.transition = true;
                     }
                 }
                 // second column
                 else if(mouseX > 9*(width/24)  && mouseX < 15*(width/24)){
                     if(1 < game.levels.length){
-                        game.loadLevel(1);
-                        this.state = 4;
+                        this.nextLevel = 1;
+                        this.loadLevel = true;
+                        this.nextState = 4;
+                        this.transitionTimer = 75;
+                        this.transition = true;
                     }
                 }
                 // third column
@@ -285,34 +342,39 @@ var menuObject = function(){
             // if click back button, go to main menu
             else if(mouseX > 3*(width/8) && mouseX < 3*(width/8) + width/4
                     && mouseY > 5*(width/6) && mouseY < 5*(width/6) + width/12){
-                this.state = 0;
+                this.nextState = 0;
+                this.transitionTimer = 75;
+                this.transition = true;
             }
             
         }
         //options menu and instructions menu
-        else if(this.state === 2 || this.state === 3){
+        else if((this.state === 2 || this.state === 3) && this.transitionTimer === 0){
             // if click back button, go to main menu
             if(mouseX > 3*(width/8) && mouseX < 3*(width/8) + width/4
                     && mouseY > 5*(width/6) && mouseY < 5*(width/6) + width/12){
-                this.state = 0;
+                this.nextState = 0;
+                this.transitionTimer = 75;
+                this.transition = true;
             }
         }
 
         // menu button during game
-        else if(this.state === 4){
+        else if(this.state === 4 && this.transitionTimer === 0){
             if(mouseX > 10 && mouseX < 40 && mouseY > 10 && mouseY < 40){
                 this.state = 5;
             }
         }
 
         // in game menu active
-        else if(this.state === 5){
+        else if(this.state === 5 && this.transitionTimer === 0){
             // click back so return to menu
             if(mouseX > width/6 && mouseX < width/6 + width/4 &&
                 mouseY > width/8 && mouseY < width/8 + width/12){
-                this.state = 0;
-                game.state = 0;
-                game.setup();
+                this.nextState = 0;
+                this.transitionTimer = 75;
+                this.transition = true;
+                this.menuReturn = true;
             }
             // click continue so return to gameplay
             else if(mouseX > 3*(width/6) && mouseX < 3*(width/6) + width/4 &&
@@ -336,7 +398,7 @@ var menuObject = function(){
     // update state according to where mouse is hovering
     this.updateHover = function(){
         // main menu
-        if(this.state === 0){
+        if(this.state === 0 && this.transitionTimer === 0){
             // hover select level
             if(mouseY > width/2 && mouseY < width/2 + width/8
                 && mouseX > width/6 && mouseX < width/6 + 2*(width/3)){
@@ -356,7 +418,7 @@ var menuObject = function(){
             }
         }
         // level selection
-        else if(this.state === 1){
+        else if(this.state === 1 && this.transitionTimer === 0){
             // first row of levels
             if(mouseY > width/4 && mouseY < width/4 + width/6){
                 // first column
@@ -401,7 +463,7 @@ var menuObject = function(){
             }
         }
         //options menu and instructions menu
-        else if(this.state === 2 || this.state === 3){
+        else if((this.state === 2 || this.state === 3) && this.transitionTimer === 0){
             if(mouseX > 3*(width/8) && mouseX < 3*(width/8) + width/4
                     && mouseY > 5*(width/6) && mouseY < 5*(width/6) + width/12){
                 this.hover = 'Back';
@@ -410,7 +472,7 @@ var menuObject = function(){
             }
         }
         // menu button during game
-        else if(this.state === 4){
+        else if(this.state === 4 && this.transitionTimer === 0){
             if(mouseX > 10 && mouseX < 40 && mouseY > 10 && mouseY < 40){
                 this.hover = 'X';
             }else{
@@ -419,7 +481,7 @@ var menuObject = function(){
         }
 
         // in game menu active
-        else if(this.state === 5){
+        else if(this.state === 5 && this.transitionTimer === 0){
             if(mouseX > width/6 && mouseX < width/6 + width/4 &&
                 mouseY > width/8 && mouseY < width/8 + width/12){
                 this.hover = 'Exit';
