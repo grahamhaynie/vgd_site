@@ -38,6 +38,38 @@ var menuObject = function(){
     this.zaplines.push(new zapline(6.3*(width/10), 1.3*(width/10), 6.7*(width/10), 1.6*(width/10)));
     this.zaplines.push(new zapline(6.3*(width/10), 2*(width/10), 6.7*(width/10), 1.6*(width/10)));
     
+    //I
+    this.zaplines.push(new zapline(1.5*(width/10), 2.5*(width/10), 1.5*(width/10), 3.5*(width/10)));
+    this.zaplines.push(new zapline(1.2*(width/10), 2.5*(width/10), 1.8*(width/10), 2.5*(width/10)));
+    this.zaplines.push(new zapline(1.2*(width/10), 3.5*(width/10), 1.8*(width/10), 3.5*(width/10)));
+    //N
+    this.zaplines.push(new zapline(2.2*(width/10), 2.5*(width/10), 2.2*(width/10), 3.5*(width/10)));
+    this.zaplines.push(new zapline(2.2*(width/10), 2.5*(width/10), 2.8*(width/10), 3.5*(width/10)));
+    this.zaplines.push(new zapline(2.8*(width/10), 2.5*(width/10), 2.8*(width/10), 3.5*(width/10)));
+    //V 
+    this.zaplines.push(new zapline(3.1*(width/10), 2.5*(width/10), 3.4*(width/10), 3.5*(width/10)));
+    this.zaplines.push(new zapline(3.7*(width/10), 2.5*(width/10), 3.4*(width/10), 3.5*(width/10)));
+    //A
+    this.zaplines.push(new zapline(4.3*(width/10), 2.5*(width/10), 4.6*(width/10), 3.5*(width/10)));
+    this.zaplines.push(new zapline(4*(width/10), 3.5*(width/10), 4.3*(width/10), 2.5*(width/10)));
+    this.zaplines.push(new zapline(4.2*(width/10), 3*(width/10), 4.5*(width/10), 3*(width/10)));
+    //S
+    this.zaplines.push(new zapline(4.8*(width/10), 2.8*(width/10), 5.2*(width/10), 2.5*(width/10)));
+    this.zaplines.push(new zapline(4.8*(width/10), 2.8*(width/10), 5.2*(width/10), 3.1*(width/10)));
+    this.zaplines.push(new zapline(4.8*(width/10), 3.5*(width/10), 5.2*(width/10), 3.1*(width/10)));
+    //I
+    this.zaplines.push(new zapline(5.7*(width/10), 2.5*(width/10), 5.7*(width/10), 3.5*(width/10)));
+    this.zaplines.push(new zapline(5.4*(width/10), 2.5*(width/10), 6*(width/10), 2.5*(width/10)));
+    this.zaplines.push(new zapline(5.4*(width/10), 3.5*(width/10), 6*(width/10), 3.5*(width/10)));
+    //O
+    this.zaplines.push(new zapline(6.4*(width/10), 2.5*(width/10), 6.4*(width/10), 3.5*(width/10)));
+    this.zaplines.push(new zapline(7*(width/10), 2.5*(width/10), 7*(width/10), 3.5*(width/10)));
+    this.zaplines.push(new zapline(6.4*(width/10), 2.5*(width/10), 7*(width/10), 2.5*(width/10)));
+    this.zaplines.push(new zapline(6.4*(width/10), 3.5*(width/10), 7*(width/10), 3.5*(width/10)));
+    ///N
+    this.zaplines.push(new zapline(7.5*(width/10), 2.5*(width/10), 7.5*(width/10), 3.5*(width/10)));
+    this.zaplines.push(new zapline(7.5*(width/10), 2.5*(width/10), 8.1*(width/10), 3.5*(width/10)));
+    this.zaplines.push(new zapline(8.1*(width/10), 2.5*(width/10), 8.1*(width/10), 3.5*(width/10)));
 
     // ---------------------------------------------
     // ---------------------------------------------
