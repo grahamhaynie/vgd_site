@@ -30,55 +30,55 @@ var menuObject = function(){
 
     // add lines to draw title animation
     this.zaplines = [];
-    // add those lines
-    //M
+    // add lines for:
+    // M
     this.zaplines.push(new zapline(3*(width/10), width/10, 3*(width/10), 2*(width/10)));
     this.zaplines.push(new zapline(3*(width/10), width/10, 3.5*(width/10), 2*(width/10)));
     this.zaplines.push(new zapline(4*(width/10), width/10, 3.5*(width/10), 2*(width/10)));
     this.zaplines.push(new zapline(4*(width/10), width/10, 4*(width/10), 2*(width/10)));
-    //A
+    // A
     this.zaplines.push(new zapline(4.8*(width/10), width/10, 5.1*(width/10), 2*(width/10)));
     this.zaplines.push(new zapline(4.8*(width/10), width/10, 4.5*(width/10), 2*(width/10)));
     this.zaplines.push(new zapline(4.6*(width/10), 1.5*(width/10), 5*(width/10), 1.5*(width/10)));
-    //R
+    // R
     this.zaplines.push(new zapline(5.5*(width/10), width/10, 5.5*(width/10), 2*(width/10)));
     this.zaplines.push(new zapline(5.5*(width/10), 1.5*(width/10), 6*(width/10), 2*(width/10)));
     this.zaplines.push(new zapline(5.5*(width/10), (width/10), 6*(width/10), 1.2*(width/10)));
     this.zaplines.push(new zapline(5.5*(width/10), 1.5*(width/10), 6*(width/10), 1.2*(width/10)));
-    //S
+    // S
     this.zaplines.push(new zapline(6.3*(width/10), 1.3*(width/10), 6.7*(width/10), (width/10)));
     this.zaplines.push(new zapline(6.3*(width/10), 1.3*(width/10), 6.7*(width/10), 1.6*(width/10)));
     this.zaplines.push(new zapline(6.3*(width/10), 2*(width/10), 6.7*(width/10), 1.6*(width/10)));
     
-    //I
+    // I
     this.zaplines.push(new zapline(1.5*(width/10), 2.5*(width/10), 1.5*(width/10), 3.5*(width/10)));
     this.zaplines.push(new zapline(1.2*(width/10), 2.5*(width/10), 1.8*(width/10), 2.5*(width/10)));
     this.zaplines.push(new zapline(1.2*(width/10), 3.5*(width/10), 1.8*(width/10), 3.5*(width/10)));
-    //N
+    // N
     this.zaplines.push(new zapline(2.2*(width/10), 2.5*(width/10), 2.2*(width/10), 3.5*(width/10)));
     this.zaplines.push(new zapline(2.2*(width/10), 2.5*(width/10), 2.8*(width/10), 3.5*(width/10)));
     this.zaplines.push(new zapline(2.8*(width/10), 2.5*(width/10), 2.8*(width/10), 3.5*(width/10)));
-    //V 
+    // V 
     this.zaplines.push(new zapline(3.1*(width/10), 2.5*(width/10), 3.4*(width/10), 3.5*(width/10)));
     this.zaplines.push(new zapline(3.7*(width/10), 2.5*(width/10), 3.4*(width/10), 3.5*(width/10)));
-    //A
+    // A
     this.zaplines.push(new zapline(4.3*(width/10), 2.5*(width/10), 4.6*(width/10), 3.5*(width/10)));
     this.zaplines.push(new zapline(4*(width/10), 3.5*(width/10), 4.3*(width/10), 2.5*(width/10)));
     this.zaplines.push(new zapline(4.2*(width/10), 3*(width/10), 4.5*(width/10), 3*(width/10)));
-    //S
+    // S
     this.zaplines.push(new zapline(4.8*(width/10), 2.8*(width/10), 5.2*(width/10), 2.5*(width/10)));
     this.zaplines.push(new zapline(4.8*(width/10), 2.8*(width/10), 5.2*(width/10), 3.1*(width/10)));
     this.zaplines.push(new zapline(4.8*(width/10), 3.5*(width/10), 5.2*(width/10), 3.1*(width/10)));
-    //I
+    // I
     this.zaplines.push(new zapline(5.7*(width/10), 2.5*(width/10), 5.7*(width/10), 3.5*(width/10)));
     this.zaplines.push(new zapline(5.4*(width/10), 2.5*(width/10), 6*(width/10), 2.5*(width/10)));
     this.zaplines.push(new zapline(5.4*(width/10), 3.5*(width/10), 6*(width/10), 3.5*(width/10)));
-    //O
+    // O
     this.zaplines.push(new zapline(6.4*(width/10), 2.5*(width/10), 6.4*(width/10), 3.5*(width/10)));
     this.zaplines.push(new zapline(7*(width/10), 2.5*(width/10), 7*(width/10), 3.5*(width/10)));
     this.zaplines.push(new zapline(6.4*(width/10), 2.5*(width/10), 7*(width/10), 2.5*(width/10)));
     this.zaplines.push(new zapline(6.4*(width/10), 3.5*(width/10), 7*(width/10), 3.5*(width/10)));
-    ///N
+    /// N
     this.zaplines.push(new zapline(7.5*(width/10), 2.5*(width/10), 7.5*(width/10), 3.5*(width/10)));
     this.zaplines.push(new zapline(7.5*(width/10), 2.5*(width/10), 8.1*(width/10), 3.5*(width/10)));
     this.zaplines.push(new zapline(8.1*(width/10), 2.5*(width/10), 8.1*(width/10), 3.5*(width/10)));
@@ -91,7 +91,7 @@ var menuObject = function(){
             this.zaplines[i].draw();
             this.zaplines[i].update();
         }
-    }
+    };
 
     // ---------------------------------------------
     // ---------------------------------------------
@@ -101,6 +101,9 @@ var menuObject = function(){
         fill(214, 214, 214);
         stroke(0, 0, 0);
         strokeWeight(5);
+        textFont(qfont);
+        textSize(30);
+        textAlign(CENTER);
         if(small){
             strokeWeight(3);
         }
@@ -119,11 +122,11 @@ var menuObject = function(){
             text(t, x + w/2, y + h*2/3);
         }
         strokeWeight(1);
-    }
+    };
 
     // ---------------------------------------------
     // ---------------------------------------------
-    // draw text t at x, y
+    // draw text t at x, y in title format
     this.drawTitle = function(t, x, y){
         fill(214, 214, 214);
         stroke(0, 0, 0);
@@ -132,12 +135,52 @@ var menuObject = function(){
         textSize(30);
         textAlign(CENTER);
         text(t, x, y);
+    };
+
+     // ---------------------------------------------
+    // ---------------------------------------------
+    // draw paragraph text t at location x, y in paragraph format
+    this.drawPText = function(t, x, y){
+        fill(214, 214, 214);
+        stroke(0, 0, 0);
+        strokeWeight(3);
+        textFont(qfont);
+        textSize(20);
+        textAlign(CENTER);
+        text(t, x, y);
+    };
+
+    // ---------------------------------------------
+    // ---------------------------------------------
+    // draw an arrow key at x, y with text t
+    // highlight if highlight bool is set
+    this.drawArrowKey = function(t, x, y){
+        fill(214, 214, 214);
+        stroke(0, 0, 0);
+        strokeWeight(5);
+
+        // draw box
+        rect(x, y, width/12, width/12, 10);
+        // draw arrow
+        fill(0, 0, 0);
+        if(t === 'UP'){
+            triangle(x + 15, y + 35, x + 25, y + 15, x + 35, y + 35);
+        }else if(t === 'DOWN'){
+            triangle(x + 15, y + 15, x + 25, y + 35, x + 35, y + 15);
+        }
+        else if(t === 'LEFT'){
+            triangle(x + 15, y + 25, x + 35, y + 15, x + 35, y + 35);
+        }
+        else if(t === 'RIGHT'){
+            triangle(x + 15, y + 15, x + 15, y + 35, x + 35, y + 25);
+        }
     }
 
     // ---------------------------------------------
     // ---------------------------------------------
     // draw menu
     this.draw = function(){
+
         // main menu
         if(this.state === 0){
             // draw title
@@ -152,12 +195,7 @@ var menuObject = function(){
         }
         // level selection
         else if(this.state === 1){
-            fill(214, 214, 214);
-            stroke(0, 0, 0);
-            strokeWeight(3);
-            textSize(30);
-            textAlign(CENTER);
-            text("Select level:", width/2, 40);
+            this.drawTitle("Select level:", width/2, 40);
 
             // draw level selection boxes
             // show level name and level difficulty in box
@@ -205,6 +243,21 @@ var menuObject = function(){
         else if(this.state === 2){
             this.drawTitle("Instructions:", width/2, 40);
 
+            // draw paragraph text for arrow keys
+            this.drawPText('Use the arrow keys to move your astronaut', width/2, 2*(width/10));
+            this.drawPText('Space to fire your laser blaster', width/2, 2.8*(width/10));
+            this.drawPText('And shift to pick up and move defenses', width/2, 3.6*(width/10));
+
+            // draw arrow keys, rotating through which to draw
+            this.drawArrowKey('UP', 8*(height/10) - 25, 5*(height/10));
+            this.drawArrowKey('DOWN', 8*(height/10) - 25, 6*(height/10));
+            this.drawArrowKey('LEFT', 8*(height/10) - 90, 6*(height/10));
+            this.drawArrowKey('RIGHT', 8*(height/10) + 40, 6*(height/10));
+
+            // draw other control keys
+            this.drawMenuBox(width/10, 5*(height/10), width/4, width/12, 'Shift', false);
+            this.drawMenuBox(width/10, 6*(height/10), width/2, width/12, 'Space', false);
+
             // back button
             this.drawMenuBox(3*(width/8), 5*(width/6), width/4, width/12, 'Back', false);
         }
@@ -212,6 +265,10 @@ var menuObject = function(){
         else if(this.state === 3){
             this.drawTitle("Options:", width/2, 40);
 
+            // Draw todo
+            this.drawPText('TODO', width/2, 2*(width/10))
+            this.drawPText('these will be added as the game is implemented', width/2, 3*(width/10));
+            
             // back button
             this.drawMenuBox(3*(width/8), 5*(width/6), width/4, width/12, 'Back', false);
         }
