@@ -7,12 +7,16 @@ var vaultdoor = function(){
     this.x = -75;
     this.xDir = 1;
 
+    // ---------------------------------------------
+    // ---------------------------------------------
     // reset vault door
     this.reset = function(){
         this.x = -75;
         this.xDir = 1;
     };
 
+    // ---------------------------------------------
+    // ---------------------------------------------
     // draw as two vault doors coming in from left and right side
     this.draw = function(){
 
@@ -57,6 +61,8 @@ var vaultdoor = function(){
         strokeWeight(1);
     };
 
+    // ---------------------------------------------
+    // ---------------------------------------------
     // update x so that door appears to open and close
     this.update = function(){
         if(this.xDir === 1){

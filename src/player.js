@@ -1,12 +1,13 @@
 /* player
- * game's player
+ * game's player, can be moved with the arrow keys. The player is 
+ * always at the center of the screen. The player can not move through walls,
+ * but the player can pick up and move walls.
+ * 
+ * To add: Player will be able to shoot and collect collectibles
  */ 
 var player = function(x, y){
     this.position = createVector(x, y);
-    this.size = 30;
-
-    // keep track of how long player has been empowered.
-    this.empoweredTimer = 0;
+    this.size = 60;
 
     // track direction pointing, start pointing up
     this.angle = 0;
@@ -14,30 +15,92 @@ var player = function(x, y){
     this.acceleration = new createVector(0, 0);
     this.drag = 0.825;
 
+    // offset for drawing appropriate sprite
+    this.spriteOffsetX = 0;
+
+    // index of wall list highlighting
+    this.highlightIndex = -1;
+
+    // index of wall selected, -1 if none picked up
+    this.wallIndex = -1;
+    // a timer to track if can pickup/put down again 
+    this.pickupTimer = 0;
+
     // ---------------------------------------------
     // ---------------------------------------------
+    // calculate the x, y where placing a block, and if
+    // that position is legal
+    this.getPlacePos = function(){
+        // calculate where location of rectangle ahead of player will be
+        var aheadVector = createVector(cos(this.angle - HALF_PI)*this.size, sin(this.angle - HALF_PI)*this.size);
+        // get the X and Y for grid value of where to draw rect
+        this.rectX = round((this.position.x + aheadVector.x - (this.position.x + aheadVector.x) % 40)/40 );
+        this.rectY = round((this.position.y + aheadVector.y - (this.position.y + aheadVector.y) % 40)/40 );
+
+        // check if position is within game boundary
+        if(this.rectX !== -1 && this.rectX <= (game.maxX -20)/40 && this.rectY !== -1 && this.rectY <= (game.maxY -20)/40){
+            this.validPosition = true;
+        }else{
+            this.validPosition = false;
+        }
+
+        // check that not placing on another wall
+        for(var i = 0; i < game.walls.length; i++){
+            if(i != this.wallIndex && this.rectX*40 + 20 == game.walls[i].x && this.rectY*40 + 20 == game.walls[i].y){
+                this.validPosition = false;
+            }
+        }
+
+        // check that position is not colliding with player
+        if(abs(this.rectX*40 + 20 - this.position.x) <= this.size/2 + 20 && abs(this.rectY*40 + 20 - this.position.y) <= this.size/2 + 20){
+            this.validPosition = false;
+        }
+    };
+
+    // ---------------------------------------------
+    // ---------------------------------------------
+    // draw player's sprite
     this.draw = function(){
+        // if player has picked up wall, show that 
+        if(this.wallIndex !== -1){
+            this.getPlacePos();
+            // draw position where would be putting down wall
+            push();
+            strokeWeight(4);
+            noFill();
+            // draw as green if in bounds, otherwise draw as red
+            if(this.validPosition){
+                   stroke(20, 201, 35);
+            }else{
+                stroke(201, 20, 35);
+            }
+            translate(width/2 - this.position.x, width/2 - this.position.y);
+            rect(this.rectX*40, this.rectY*40, 40, 40);
+            strokeWeight(1);
+            pop();
+        }
+
         push();
         // always draw player in center of screen
         translate(width/2, height/2);
         rotate(this.angle);
         fill(255, 0, 0);
         stroke(0, 0, 0);
-        //rect(-this.size/2, -this.size/2, this.size, this.size);
-        image(images[0],-this.size/2, -this.size/2, this.size, this.size);
+        image(images[1].get(this.spriteOffsetX*300, 0, 300, 300),-this.size/2, -this.size/2, this.size, this.size);
+
+        // draw wall in player's hand
+        if(this.wallIndex != -1){
+            game.walls[this.wallIndex].drawInHand();
+        }
+
         pop();
-
-
-
-        // TODO:
-        // use radians?
 
     };
 
     // ---------------------------------------------
     // ---------------------------------------------
-    // update player state
-    this.update = function(){
+    // handle movement of player
+    this.move = function(){
         // generate movement vector to add to player's current
         // but since doing every frame make sure to add
         // zero if no input is provided.
@@ -56,15 +119,118 @@ var player = function(x, y){
             yDir = 1;
         }
 
-        // check collisions
-        // TODO
-
         // update vectors
         this.acceleration = createVector(xDir, yDir);
         this.velocity.add(this.acceleration);
         this.velocity.mult(this.drag);
+
+        if(!(xDir === 0 && yDir === 0)){
+            this.angle = this.velocity.heading() + HALF_PI;
+        }
+
+        // highlight wall that is in front of player
+        var aheadVector = createVector(this.position.x + cos(this.angle - HALF_PI)*this.size/2, this.position.y + sin(this.angle - HALF_PI)*this.size/2);
+        // get the X and Y for grid value of where to draw rect
+        var rectX = round((aheadVector.x - (aheadVector.x) % 40)/40 );
+        var rectY = round((aheadVector.y - (aheadVector.y) % 40)/40 );
+
+        this.highlightIndex = -1;
+        
+        // check for colllision with walls
+        for(var i = 0; i < game.walls.length; i++){
+            // only check collisions with non-picke up blocks
+            if(!game.walls[i].pickedUp){
+                // check for collision of y portion of velocity vector
+                // if collide, set y velocity to zero
+                if(game.walls[i].collidesWith(this.position.x, this.position.y + this.velocity.y, this.size)){
+                    this.velocity.y = 0; 
+                }
+
+                // check for collision with x portion of velocity. 
+                // if collide, set x velocity to zero
+                if(game.walls[i].collidesWith(this.position.x + this.velocity.x, this.position.y, this.size)){
+                    this.velocity.x = 0; 
+                }
+
+                // check collision both x and y
+                if(game.walls[i].collidesWith(this.position.x + this.velocity.x, this.position.y + this.velocity.y, this.size)){
+                    this.velocity.x = 0; 
+                    this.velocity.y = 0; 
+                }
+            }
+            
+            // check if can highlight block, but only if block not picked up
+            if(game.walls[i].collidesWith(aheadVector.x, aheadVector.y, this.size/4) && this.wallIndex === -1){
+                this.highlightIndex = i;
+            }
+        }
+
+        // also make sure player does not leave map 
+        if(this.position.x + this.velocity.x < 0 || this.position.x + this.velocity.x > game.maxX){
+            this.velocity.x = 0;
+        }
+        if(this.position.y + this.velocity.y < 0 || this.position.y + this.velocity.y > game.maxY){
+            this.velocity.y = 0;
+        }
+
+        // update position after checking collisions
         this.position.add(this.velocity);
 
-        this.angle = this.velocity.heading();
+        if(this.highlightIndex != -1){
+            game.walls[this.highlightIndex].highlightTimer = 5;
+        }
+    };
+
+    // ---------------------------------------------
+    // ---------------------------------------------
+    // handle picking up of blocks
+    this.pickup = function(){
+        // only handle change if timer expired
+        if(this.pickupTimer === 0){
+            // if player presses shift and does not have a wall picked up,
+            // then they pick up a wall
+            if (game.keyArray[SHIFT] === 1 && this.highlightIndex !== -1 && this.wallIndex === -1) {
+                this.wallIndex = this.highlightIndex;
+                this.pickupTimer = 30;
+                // update wall's state
+                game.walls[this.wallIndex].pickedUp = true;
+                
+                // when player has picked up a wall, they move slower
+                this.drag = 0.7;
+
+                // update sprite
+                this.spriteOffsetX = 1;
+            }
+            // if player presses shift and has a wall picked up, then they
+            // place that wall
+            else if(game.keyArray[SHIFT] === 1 && this.wallIndex !== -1 && this.validPosition){
+                // update wall's state
+                game.walls[this.wallIndex].pickedUp = false;
+                game.walls[this.wallIndex].x = this.rectX*40 + 20;
+                game.walls[this.wallIndex].y = this.rectY*40 + 20;
+
+                this.wallIndex = -1;
+                this.pickupTimer = 30;
+
+                // when player has put down a wall, they move faster 
+                this.drag = 0.825;  
+
+                // update sprite
+                this.spriteOffsetX = 0;
+            }
+        }
+
+        // update pickup timer
+        if(this.pickupTimer > 0){
+            this.pickupTimer--;
+        }
+    };
+
+    // ---------------------------------------------
+    // ---------------------------------------------
+    // update player state according to arrow key presses
+    this.update = function(){
+        this.move();
+        this.pickup();
     };
 };

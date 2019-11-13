@@ -1,5 +1,7 @@
 /* menuObject
  * a top level menu object to contain menu items
+ * the state of the menu is here, all graphics for 
+ * storing the menu are also contained here
  */
 var menuObject = function(){
 
@@ -16,6 +18,10 @@ var menuObject = function(){
 
     // add a hover effect to menu items
     this.hover = '';
+
+    // want to have a menuPlayer - a player just for 
+    // demonstration on the menu
+    this.mp = new menuPlayer(width/2, height/2);
 
     // if this bool is set, transitioning between states
     this.transition = false;
@@ -96,7 +102,7 @@ var menuObject = function(){
     // ---------------------------------------------
     // ---------------------------------------------
     // draw a menu box with given dimensions and text, 
-    // also draw differently if highlighted
+    // drawing with different adjustments for a small box
     this.drawMenuBox = function(x, y, w, h, t, small){
         fill(214, 214, 214);
         stroke(0, 0, 0);
@@ -108,7 +114,9 @@ var menuObject = function(){
             strokeWeight(3);
         }
         // draw stroke differently if highligted
-        if(this.hover == t){
+        // also highlight if shift or space for instructions screen
+        if(this.hover == t ||(game.keyArray[SHIFT] === 1 && t === 'Shift') || 
+            (game.keyArray[32] === 1 && t === 'Space')){
             stroke(64, 186, 45);
         }
         // draw box
@@ -159,10 +167,17 @@ var menuObject = function(){
         stroke(0, 0, 0);
         strokeWeight(5);
 
-        // draw box
+        // if user pressing arrow key highlight
+        if(game.keyArray[UP_ARROW] === 1 && t === 'UP' || 
+           game.keyArray[DOWN_ARROW] === 1 && t === 'DOWN' ||
+           game.keyArray[LEFT_ARROW] === 1 && t === 'LEFT' ||
+           game.keyArray[RIGHT_ARROW] === 1 && t === 'RIGHT' ){
+            stroke(64, 186, 45);
+        }
         rect(x, y, width/12, width/12, 10);
         // draw arrow
         fill(0, 0, 0);
+        stroke(0, 0, 0);
         if(t === 'UP'){
             triangle(x + 15, y + 35, x + 25, y + 15, x + 35, y + 35);
         }else if(t === 'DOWN'){
@@ -174,7 +189,7 @@ var menuObject = function(){
         else if(t === 'RIGHT'){
             triangle(x + 15, y + 15, x + 15, y + 35, x + 35, y + 25);
         }
-    }
+    };
 
     // ---------------------------------------------
     // ---------------------------------------------
@@ -189,7 +204,7 @@ var menuObject = function(){
 
             // draw menu selection options
             this.drawMenuBox(width/6, 3*(width/6), 2*(width/3), width/8, 'Select Level', false);
-            this.drawMenuBox(width/6, 4*(width/6), 2*(width/3), width/8, 'Instructions', false);
+            this.drawMenuBox(width/6, 4*(width/6), 2*(width/3), width/8, 'instructions', false);
             this.drawMenuBox(width/6, 5*(width/6), 2*(width/3), width/8, 'Options', false);
 
         }
@@ -241,12 +256,16 @@ var menuObject = function(){
         }
         // Instructions menu
         else if(this.state === 2){
-            this.drawTitle("Instructions:", width/2, 40);
+            this.drawTitle("instructions:", width/2, 40);
 
-            // draw paragraph text for arrow keys
-            this.drawPText('Use the arrow keys to move your astronaut', width/2, 2*(width/10));
-            this.drawPText('Space to fire your laser blaster', width/2, 2.8*(width/10));
-            this.drawPText('And shift to pick up and move defenses', width/2, 3.6*(width/10));
+            // draw paragraph text for controls
+            this.drawPText('Press the arrow keys to move your astronaut,', width/2, 2*(width/10));
+            this.drawPText('Space to fire your laser blaster and shift', width/2, 2.8*(width/10));
+            this.drawPText('to pick up and move defenses. Try it out:', width/2, 3.6*(width/10));
+            this.drawPText('Great, Now you\'re ready to play the tutorial!', width/2, 7.7*(width/10));
+
+            this.mp.draw();
+            this.mp.update();
 
             // draw arrow keys, rotating through which to draw
             this.drawArrowKey('UP', 8*(height/10) - 25, 5*(height/10));
@@ -274,15 +293,15 @@ var menuObject = function(){
         }
         // menu box during gameplay
         else if(this.state === 4){
-            this.drawMenuBox(10, 10, 30, 30, 'X', true);
+            this.drawMenuBox(10, 10, 30, 30, 'x', true);
         }
         // menu that can select from during gameplay
         else if(this.state === 5){
             this.drawTitle("Paused", width/2, 40);
 
             // draw continue and back boxes
-            this.drawMenuBox(width/6, width/8, width/4, width/12, 'Exit', false);
-            this.drawMenuBox(3*(width/6), width/8, width/4, width/12, 'Continue', false);
+            this.drawMenuBox(width/6, width/8, 3*(width/10), width/12, 'exit', false);
+            this.drawMenuBox(3*(width/6), width/8, 3*(width/10), width/12, 'Continue', false);
         }
 
         // if transitioning between states, draw vault door
@@ -291,6 +310,7 @@ var menuObject = function(){
             this.vd.update();
             this.transitionTimer--;
         }
+        
         // want state to change halfway through timer, so when doors open
         // shows next screen
         if(this.transitionTimer === 35){
@@ -322,7 +342,7 @@ var menuObject = function(){
 
     // ---------------------------------------------
     // ---------------------------------------------
-    // update state according to where mouse is clicked
+    // update menu state according to where mouse is clicked
     this.updateClick = function(){
         // main menu
         if(this.state === 0 && this.transitionTimer === 0){
@@ -426,7 +446,7 @@ var menuObject = function(){
         // in game menu active
         else if(this.state === 5 && this.transitionTimer === 0){
             // click back so return to menu
-            if(mouseX > width/6 && mouseX < width/6 + width/4 &&
+            if(mouseX > width/6 && mouseX < width/6 + 3*(width/10) &&
                 mouseY > width/8 && mouseY < width/8 + width/12){
                 this.nextState = 0;
                 this.transitionTimer = 75;
@@ -434,20 +454,12 @@ var menuObject = function(){
                 this.menuReturn = true;
             }
             // click continue so return to gameplay
-            else if(mouseX > 3*(width/6) && mouseX < 3*(width/6) + width/4 &&
+            else if(mouseX > 3*(width/6) && mouseX < 3*(width/6) + 3*(width/10) &&
                 mouseY > width/8 && mouseY < width/8 + width/12){
                 this.state = 4;
             }
         }
         
-
-
-
-            // TODO: 
-            // convert to constants
-            // add transitions
-    
-    
     };
 
     // ---------------------------------------------
@@ -464,7 +476,7 @@ var menuObject = function(){
             // instructions
             else if(mouseY > 4*(width/6) && mouseY < 4*(width/6) + width/8
                 && mouseX > width/6 && mouseX < width/6 + 2*(width/3)){
-                this.hover = 'Instructions';
+                this.hover = 'instructions';
             }
             // options
             else if(mouseY > 5*(width/6) && mouseY < 5*(width/6) + width/8
@@ -531,21 +543,22 @@ var menuObject = function(){
         // menu button during game
         else if(this.state === 4 && this.transitionTimer === 0){
             if(mouseX > 10 && mouseX < 40 && mouseY > 10 && mouseY < 40){
-                this.hover = 'X';
+                this.hover = 'x';
             }else{
                 this.hover = '';
             }
         }
 
         // in game menu active
+    
         else if(this.state === 5 && this.transitionTimer === 0){
-            if(mouseX > width/6 && mouseX < width/6 + width/4 &&
+            if(mouseX > width/6 && mouseX < width/6 + 3*(width/10) &&
                 mouseY > width/8 && mouseY < width/8 + width/12){
-                this.hover = 'Exit';
+                this.hover = 'exit';
             }
-            else if(mouseX > 3*(width/6) && mouseX < 3*(width/6) + width/4 &&
+            else if(mouseX > 3*(width/6) && mouseX < 3*(width/6) + 3*(width/10) &&
                 mouseY > width/8 && mouseY < width/8 + width/12){
-                this.hover = 'Continue'
+                this.hover = 'Continue';
             }else{
                 this.hover = '';
             }

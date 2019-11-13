@@ -1,6 +1,8 @@
 /* zapline
  * a line spanning from x1, y1 to x2, y2
  * that is drawn as a line with lightning effects
+ * by dividing up the distance into points (a sort of subidivision)
+ * and then fuzzing them with some random x, y addition
  */
 var zapline = function(x1, y1, x2, y2){
     this.x1 = x1;
@@ -17,6 +19,7 @@ var zapline = function(x1, y1, x2, y2){
 
     // ---------------------------------------------
     // ---------------------------------------------
+    // draw zapline by connecting generated points
     this.draw = function(){
         stroke(0, 0, 0, 100);
         strokeWeight(4);
@@ -30,7 +33,13 @@ var zapline = function(x1, y1, x2, y2){
     };
     // ---------------------------------------------
     // ---------------------------------------------
-    // update zap line
+    /* update zap line by creating new set of points, but
+     * only do every 5 frames
+     * subdivide by taking distance from x1, y1 to x2, y2 
+     * and cutting into increments of 10. Then, add a random 
+     * value between 0 and 5 to x, then repeat for y. Push this
+     * new point onto points.
+     */
     this.update = function(){
         this.frameCount++;
         if(this.frameCount % 5 === 0){

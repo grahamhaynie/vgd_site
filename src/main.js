@@ -13,13 +13,18 @@ var qfont;
 // menu and gameplay
 var images = [];
 
+// debug flag set for rapid developement of levels
+var debug = false;
+
 // ---------------------------------------------
 // ---------------------------------------------
 // need to load images before program runs
 function preload(){
-    images.push(loadImage('resources/ass.png'));
+    // background
     images.push(loadImage('resources/floor.png'));
-    qfont = loadFont('resources/Quantum.otf');
+    // character sprite map
+    images.push(loadImage('resources/character_map.png'));
+    qfont = loadFont('resources/spaceranger.ttf');
 }
 
 // ---------------------------------------------
@@ -28,8 +33,18 @@ function preload(){
 function setup() {
     // position canvas in center of screen
     var canvas = createCanvas(600, 600);
+    //var x = (windowWidth - width) / 2;
+    //var y = (windowHeight - height) / 2;
+    //canvas.position(x, y);
     canvas.parent('sketch-holder');
+
     game.setup();
+
+    if(debug){
+        game.menu.state = 4;
+        game.loadLevel(0);
+        game.state = 1;
+    }
 };
 
 //---------------------------------------------------
@@ -59,7 +74,10 @@ mouseReleased = function(){
 
 // ---------------------------------------------
 // ---------------------------------------------
+// draw function for processing, use as wrapper
+// for drawing game and updating it.
 function draw() {
+    angleMode(RADIANS);
     background(200, 200, 200);
     game.draw();
     game.update();
