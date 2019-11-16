@@ -13,6 +13,12 @@ var wall = function(x, y){
     // track if wall is picked up, if picked up do not draw
     this.pickedUp = false;
 
+    // the health of the wall
+    this.health = 100;
+    
+    // offset for accessing sprite map
+    this.spriteOffsetX = 0;
+
     // ---------------------------------------------
     // ---------------------------------------------
     // draw according to cx, cy where the cx, cy are 
@@ -20,17 +26,16 @@ var wall = function(x, y){
     // walls are only drawn when they are on the screen
     this.draw = function(cx, cy){
         push();
-        translate(width/2 - cx, width/2 - cy);
-        fill(82, 74, 63);
+        translate(width/2 - cx + this.x, width/2 - cy + this.y);
         if(this.highlightTimer > 0){
             strokeWeight(4);
             stroke(20, 201, 35);
-            rect(this.x - this.size/2 + 2, this.y - this.size/2 + 2, this.size - 4, this.size - 4);
+            noFill();
+            image(images[3].get(this.spriteOffsetX*300, 0, 300, 300), -this.size/2, -this.size/2, this.size, this.size);
+            rect(-this.size/2 + 2, -this.size/2 + 2, this.size - 4, this.size - 4);
             strokeWeight(1);
         }else{
-            stroke(0, 0, 0);
-            fill(82, 74, 63);
-            rect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
+            image(images[3].get(this.spriteOffsetX*300, 0, 300, 300), -this.size/2, -this.size/2, this.size, this.size);
         }
         pop();
     };
@@ -42,8 +47,8 @@ var wall = function(x, y){
         fill(82, 74, 63);
         stroke(0, 0, 0);
         fill(82, 74, 63);
-        rect(-this.size/2, -this.size*1.5, this.size, this.size);
-    }
+        image(images[3].get(this.spriteOffsetX*300, 0, 300, 300), -this.size/2, -this.size*1.5, this.size, this.size);
+    };
 
 
     // ---------------------------------------------
@@ -53,7 +58,18 @@ var wall = function(x, y){
         if(this.highlightTimer > 0){
             this.highlightTimer--;
         }
-    }
+
+        // update sprite
+        if(this.health > 80){
+            this.spriteOffsetX = 0;
+        }else if(this.health <= 80 && this.health > 50){
+            this.spriteOffsetX = 1;
+        }else if(this.health <= 50 && this.health > 20){
+            this.spriteOffsetX = 2;
+        }else if(this.health <= 20){
+            this.spriteOffsetX = 3;
+        }
+    };
 
     // ---------------------------------------------
     // ---------------------------------------------    

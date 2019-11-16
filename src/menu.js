@@ -9,9 +9,10 @@ var menuObject = function(){
     // 0 = main menu
     // 1 = selecting levels
     // 2 = Instructions
-    // 3 = options
+    // 3 = options, deprecated
     // 4 = menu box during gameplay
     // 5 = menu if clicked during gameplay
+    // 6 = game over menu
     this.state = 0;
     // nextState is used for animation
     this.nextState = 0;
@@ -27,9 +28,10 @@ var menuObject = function(){
     this.transition = false;
     this.transitionTimer = 0;
 
-    // flags for when returning to menu or loading a level
+    // flags for when returning to menu, loading a level, or reloading a level after defeat
     this.loadLevel = false;
     this.menuReturn = false; 
+    this.reload = false;
 
     // vault door for animating transition between states
     this.vd = new vaultdoor();
@@ -143,6 +145,7 @@ var menuObject = function(){
         textSize(30);
         textAlign(CENTER);
         text(t, x, y);
+        strokeWeight(1);
     };
 
      // ---------------------------------------------
@@ -205,8 +208,7 @@ var menuObject = function(){
             // draw menu selection options
             this.drawMenuBox(width/6, 3*(width/6), 2*(width/3), width/8, 'Select Level', false);
             this.drawMenuBox(width/6, 4*(width/6), 2*(width/3), width/8, 'instructions', false);
-            this.drawMenuBox(width/6, 5*(width/6), 2*(width/3), width/8, 'Options', false);
-
+            
         }
         // level selection
         else if(this.state === 1){
@@ -218,6 +220,7 @@ var menuObject = function(){
                 if(x < 3 ){
                     fill(214, 214, 214);
                     stroke(0, 0, 0);
+                    strokeWeight(3);
                     if(this.hover === 'level' + str(x)){
                         stroke(20, 201, 35);
                     }
@@ -261,7 +264,7 @@ var menuObject = function(){
             // draw paragraph text for controls
             this.drawPText('Press the arrow keys to move your astronaut,', width/2, 2*(width/10));
             this.drawPText('Space to fire your laser blaster and shift', width/2, 2.8*(width/10));
-            this.drawPText('to pick up and move defenses. Try it out:', width/2, 3.6*(width/10));
+            this.drawPText('to pick up and put down defenses. Try it out:', width/2, 3.6*(width/10));
             this.drawPText('Great, Now you\'re ready to play the tutorial!', width/2, 7.7*(width/10));
 
             this.mp.draw();
@@ -278,18 +281,9 @@ var menuObject = function(){
             this.drawMenuBox(width/10, 6*(height/10), width/2, width/12, 'Space', false);
 
             // back button
-            this.drawMenuBox(3*(width/8), 5*(width/6), width/4, width/12, 'Back', false);
-        }
-        // options menu
-        else if(this.state === 3){
-            this.drawTitle("Options:", width/2, 40);
-
-            // Draw todo
-            this.drawPText('TODO', width/2, 2*(width/10))
-            this.drawPText('these will be added as the game is implemented', width/2, 3*(width/10));
-            
-            // back button
-            this.drawMenuBox(3*(width/8), 5*(width/6), width/4, width/12, 'Back', false);
+            this.drawMenuBox(1.5*(width/8), 5*(width/6), width/4, width/12, 'Back', false);
+            // tutorial button
+            this.drawMenuBox(4*(width/8), 5*(width/6), width/3, width/12, 'Tutorial', false);
         }
         // menu box during gameplay
         else if(this.state === 4){
@@ -303,6 +297,29 @@ var menuObject = function(){
             this.drawMenuBox(width/6, width/8, 3*(width/10), width/12, 'exit', false);
             this.drawMenuBox(3*(width/6), width/8, 3*(width/10), width/12, 'Continue', false);
         }
+        // game over
+        else if(this.state === 6){
+            // draw differently if player won or lost
+            if(this.won){
+                this.drawTitle("Game over!", width/2, 40);
+                this.drawPText('You won! Click the menu button', width/2, 2*(width/10));
+                this.drawPText('below to return to the menu.', width/2, 3*(width/10));
+
+                // draw return to menu button
+                this.drawMenuBox(3*(width/8), 4*(width/6), width/4, width/12, 'Menu', false);
+            }else{
+                this.drawTitle("Game over!", width/2, 40);
+
+                this.drawPText('You Lost! Click the menu button', width/2, 2*(width/10));
+                this.drawPText('below to return to the menu, or', width/2, 3*(width/10));
+                this.drawPText('the try again button to play again.', width/2, 4*(width/10));
+
+                // draw return to menu button and try again button
+                this.drawMenuBox(width/6, 4*(width/6), width/4, width/12, 'Menu', false);
+                this.drawMenuBox(3*(width/6), 4*(width/6), 3.5*(width/10), width/12, 'Try again', false);
+                
+            }
+        }
 
         // if transitioning between states, draw vault door
         if(this.transitionTimer > 0 && this.transition){
@@ -314,13 +331,20 @@ var menuObject = function(){
         // want state to change halfway through timer, so when doors open
         // shows next screen
         if(this.transitionTimer === 35){
+            // re-setup game
+            if(this.reload){
+                game.reload();
+            }
+
             // load game's level
             if(this.loadLevel){
                 game.loadLevel(this.nextLevel);
+                game.level.reload();
                 this.loadLevel = false;
             }
             // return to menu
             if(this.menuReturn){
+                game.reload();
                 game.state = 0;
             }
 
@@ -331,9 +355,7 @@ var menuObject = function(){
             this.transition = false;
             this.vd.reset();
             
-            // return to menu
             if(this.menuReturn){
-                game.setup();
                 this.menuReturn = false;
             }
         }
@@ -359,13 +381,7 @@ var menuObject = function(){
                 this.nextState = 2;
                 this.transitionTimer = 75;
                 this.transition = true;
-            }
-            // and if click options, move to options screen
-            else if(mouseY > 5*(width/6) && mouseY < 5*(width/6) + width/8
-                && mouseX > width/6 && mouseX < width/6 + 2*(width/3)){
-                this.nextState = 3;
-                this.transitionTimer = 75;
-                this.transition = true;
+                this.mp.reload();
             }
         }
 
@@ -388,11 +404,7 @@ var menuObject = function(){
                 // second column
                 else if(mouseX > 9*(width/24)  && mouseX < 15*(width/24)){
                     if(1 < game.levels.length){
-                        this.nextLevel = 1;
-                        this.loadLevel = true;
-                        this.nextState = 4;
-                        this.transitionTimer = 75;
-                        this.transition = true;
+                        print('1');
                     }
                 }
                 // third column
@@ -425,15 +437,27 @@ var menuObject = function(){
             }
             
         }
-        //options menu and instructions menu
-        else if((this.state === 2 || this.state === 3) && this.transitionTimer === 0){
+        //instructions menu
+        else if(this.state === 2 && this.transitionTimer === 0){
             // if click back button, go to main menu
-            if(mouseX > 3*(width/8) && mouseX < 3*(width/8) + width/4
+            if(mouseX > 1.5*(width/8) && mouseX < 1.5*(width/8) + width/4
                     && mouseY > 5*(width/6) && mouseY < 5*(width/6) + width/12){
                 this.nextState = 0;
                 this.transitionTimer = 75;
                 this.transition = true;
             }
+            // if click tutorial button, play tutorial
+            else if(mouseX > 4*(width/8) && mouseX < 4*(width/8) + width/3
+                && mouseY > 5*(width/6) && mouseY < 5*(width/6) + width/12){
+                if(0 < game.levels.length){
+                    this.nextLevel = 0;
+                    this.loadLevel = true;
+                    this.nextState = 4;
+                    this.transitionTimer = 75;
+                    this.transition = true;
+                }
+            }
+
         }
 
         // menu button during game
@@ -459,6 +483,40 @@ var menuObject = function(){
                 this.state = 4;
             }
         }
+        // game over menu
+        else if(this.state === 6){
+            // do differently if win or lose
+            if(this.won){
+                // return to menu
+                if(mouseX > 3*(width/8) && mouseX < 3*(width/8) + width/4 &&
+                    mouseY > 4*(width/6) && mouseY < 4*(width/6) + width/12){
+                    this.nextState = 0;
+                    this.transitionTimer = 75;
+                    this.transition = true;
+                    this.menuReturn = true;
+                }
+            }else{
+                // return to menu
+                if(mouseX > width/6 && mouseX < width/6 + width/4 &&
+                    mouseY > 4*(width/6) && mouseY < 4*(width/6) + width/12){
+                    this.nextState = 0;
+                    this.transitionTimer = 75;
+                    this.transition = true;
+                    this.menuReturn = true;
+                }
+                // start level over
+                else if(mouseX > 3*(width/6) && mouseX < 3*(width/6) + 3.5*(width/10) &&
+                    mouseY > 4*(width/6) && mouseY < 4*(width/6) + width/12){
+                    this.nextLevel = game.curLevelIndex;
+                    this.loadLevel = true;
+                    this.nextState = 4;
+                    this.transitionTimer = 75;
+                    this.transition = true;
+                    this.menuReturn = false;
+                    this.reload = true;
+                }
+            }
+        }
         
     };
 
@@ -478,11 +536,7 @@ var menuObject = function(){
                 && mouseX > width/6 && mouseX < width/6 + 2*(width/3)){
                 this.hover = 'instructions';
             }
-            // options
-            else if(mouseY > 5*(width/6) && mouseY < 5*(width/6) + width/8
-                && mouseX > width/6 && mouseX < width/6 + 2*(width/3)){
-                this.hover = 'Options';
-            }else{
+            else{
                 this.hover = '';
             }
         }
@@ -531,14 +585,22 @@ var menuObject = function(){
                 this.hover = '';
             }
         }
-        //options menu and instructions menu
-        else if((this.state === 2 || this.state === 3) && this.transitionTimer === 0){
-            if(mouseX > 3*(width/8) && mouseX < 3*(width/8) + width/4
-                    && mouseY > 5*(width/6) && mouseY < 5*(width/6) + width/12){
+        // instructions menu
+        else if(this.state === 2 && this.transitionTimer === 0){
+            // back button
+            if(mouseX > 1.5*(width/8) && mouseX < 1.5*(width/8) + width/4
+                && mouseY > 5*(width/6) && mouseY < 5*(width/6) + width/12){
                 this.hover = 'Back';
-            }else{
+            }
+            // tutorial button
+            else if(mouseX > 4*(width/8) && mouseX < 4*(width/8) + width/3
+                && mouseY > 5*(width/6) && mouseY < 5*(width/6) + width/12){
+                this.hover = 'Tutorial';
+            }
+            else{
                 this.hover = '';
             }
+
         }
         // menu button during game
         else if(this.state === 4 && this.transitionTimer === 0){
@@ -550,7 +612,6 @@ var menuObject = function(){
         }
 
         // in game menu active
-    
         else if(this.state === 5 && this.transitionTimer === 0){
             if(mouseX > width/6 && mouseX < width/6 + 3*(width/10) &&
                 mouseY > width/8 && mouseY < width/8 + width/12){
@@ -561,6 +622,27 @@ var menuObject = function(){
                 this.hover = 'Continue';
             }else{
                 this.hover = '';
+            }
+        }
+        // game over menu
+        else if(this.state === 6){
+            if(this.won){
+                if(mouseX > 3*(width/8) && mouseX < 3*(width/8) + width/4 &&
+                    mouseY > 4*(width/6) && mouseY < 4*(width/6) + width/12){
+                    this.hover = 'Menu';
+                }else{
+                    this.hover = '';
+                }
+            }else{
+                if(mouseX > width/6 && mouseX < width/6 + width/4 &&
+                    mouseY > 4*(width/6) && mouseY < 4*(width/6) + width/12){
+                    this.hover = 'Menu';
+                }else if(mouseX > 3*(width/6) && mouseX < 3*(width/6) + 3.5*(width/10) &&
+                    mouseY > 4*(width/6) && mouseY < 4*(width/6) + width/12){
+                    this.hover = 'Try again';
+                }else{
+                    this.hover = '';
+                }
             }
         }
         else{

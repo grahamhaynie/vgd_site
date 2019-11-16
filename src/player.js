@@ -6,7 +6,7 @@
  * To add: Player will be able to shoot and collect collectibles
  */ 
 var player = function(x, y){
-    this.position = createVector(x, y);
+    this.position = new createVector(x, y);
     this.size = 60;
 
     // track direction pointing, start pointing up
@@ -17,6 +17,7 @@ var player = function(x, y){
 
     // offset for drawing appropriate sprite
     this.spriteOffsetX = 0;
+    this.spriteOffsetY = 0;
 
     // index of wall list highlighting
     this.highlightIndex = -1;
@@ -25,6 +26,9 @@ var player = function(x, y){
     this.wallIndex = -1;
     // a timer to track if can pickup/put down again 
     this.pickupTimer = 0;
+
+    // timer to track if player can shoot again
+    this.shootTimer = 0;
 
     // ---------------------------------------------
     // ---------------------------------------------
@@ -46,7 +50,14 @@ var player = function(x, y){
 
         // check that not placing on another wall
         for(var i = 0; i < game.walls.length; i++){
-            if(i != this.wallIndex && this.rectX*40 + 20 == game.walls[i].x && this.rectY*40 + 20 == game.walls[i].y){
+            if(game.walls[i].health > 0  && i != this.wallIndex && this.rectX*40 + 20 == game.walls[i].x && this.rectY*40 + 20 == game.walls[i].y){
+                this.validPosition = false;
+            }
+        }
+
+        // also check that not placing on adversary that is still alive
+        for(var i = 0; i < game.adversaries.length; i++){
+            if(game.adversaries[i].health > 0 && game.adversaries[i].collidesWith(this.rectX*40 + 20, this.rectY*40 + 20, 40)){
                 this.validPosition = false;
             }
         }
@@ -69,13 +80,20 @@ var player = function(x, y){
             strokeWeight(4);
             noFill();
             // draw as green if in bounds, otherwise draw as red
+            translate(width/2 - this.position.x, width/2 - this.position.y);
             if(this.validPosition){
-                   stroke(20, 201, 35);
+                stroke(20, 201, 35);
+
+                // if player is placing a turret, show the range of that turret
+                if(game.walls[this.wallIndex] instanceof turret){
+                    ellipse(this.rectX*40 + 20, this.rectY*40 + 20, game.walls[this.wallIndex].range, game.walls[this.wallIndex].range);
+                }
+
             }else{
                 stroke(201, 20, 35);
             }
-            translate(width/2 - this.position.x, width/2 - this.position.y);
             rect(this.rectX*40, this.rectY*40, 40, 40);
+
             strokeWeight(1);
             pop();
         }
@@ -86,7 +104,7 @@ var player = function(x, y){
         rotate(this.angle);
         fill(255, 0, 0);
         stroke(0, 0, 0);
-        image(images[1].get(this.spriteOffsetX*300, 0, 300, 300),-this.size/2, -this.size/2, this.size, this.size);
+        image(images[1].get(this.spriteOffsetX*300, this.spriteOffsetY*300, 300, 300),-this.size/2, -this.size/2, this.size, this.size);
 
         // draw wall in player's hand
         if(this.wallIndex != -1){
@@ -138,8 +156,8 @@ var player = function(x, y){
         
         // check for colllision with walls
         for(var i = 0; i < game.walls.length; i++){
-            // only check collisions with non-picke up blocks
-            if(!game.walls[i].pickedUp){
+            // only check collisions with non-picked up blocks and health > 0 blocks
+            if(!game.walls[i].pickedUp && game.walls[i].health > 0){
                 // check for collision of y portion of velocity vector
                 // if collide, set y velocity to zero
                 if(game.walls[i].collidesWith(this.position.x, this.position.y + this.velocity.y, this.size)){
@@ -152,7 +170,7 @@ var player = function(x, y){
                     this.velocity.x = 0; 
                 }
 
-                // check collision both x and y
+                // check collide both
                 if(game.walls[i].collidesWith(this.position.x + this.velocity.x, this.position.y + this.velocity.y, this.size)){
                     this.velocity.x = 0; 
                     this.velocity.y = 0; 
@@ -160,11 +178,34 @@ var player = function(x, y){
             }
             
             // check if can highlight block, but only if block not picked up
-            if(game.walls[i].collidesWith(aheadVector.x, aheadVector.y, this.size/4) && this.wallIndex === -1){
+            // also check that wall is of wall type or turret
+            if(game.walls[i].health > 0 && game.walls[i].collidesWith(aheadVector.x, aheadVector.y, this.size/4) && this.wallIndex === -1 
+                && (game.walls[i] instanceof wall || game.walls[i] instanceof turret)){
                 this.highlightIndex = i;
             }
         }
+        /*
+        // check collision with adversaries
+        for(var i = 0; i < game.adversaries.length; i++){
+            // check for collision of y portion of velocity vector
+            // if collide, set y velocity to zero
+            if(game.adversaries[i].collidesWith(this.position.x, this.position.y + this.velocity.y, this.size)){
+                this.velocity.y = 0; 
+            }
 
+            // check for collision with x portion of velocity. 
+            // if collide, set x velocity to zero
+            if(game.adversaries[i].collidesWith(this.position.x + this.velocity.x, this.position.y, this.size)){
+                this.velocity.x = 0; 
+            }
+
+            // check collision both x and y
+            if(game.adversaries[i].collidesWith(this.position.x + this.velocity.x, this.position.y + this.velocity.y, this.size)){
+                this.velocity.x = 0; 
+                this.velocity.y = 0; 
+            }
+        }*/
+        
         // also make sure player does not leave map 
         if(this.position.x + this.velocity.x < 0 || this.position.x + this.velocity.x > game.maxX){
             this.velocity.x = 0;
@@ -190,11 +231,11 @@ var player = function(x, y){
             // if player presses shift and does not have a wall picked up,
             // then they pick up a wall
             if (game.keyArray[SHIFT] === 1 && this.highlightIndex !== -1 && this.wallIndex === -1) {
+                // set state of wall and player's wall and start timer
                 this.wallIndex = this.highlightIndex;
-                this.pickupTimer = 30;
-                // update wall's state
                 game.walls[this.wallIndex].pickedUp = true;
-                
+                this.pickupTimer = 30;
+
                 // when player has picked up a wall, they move slower
                 this.drag = 0.7;
 
@@ -209,6 +250,7 @@ var player = function(x, y){
                 game.walls[this.wallIndex].x = this.rectX*40 + 20;
                 game.walls[this.wallIndex].y = this.rectY*40 + 20;
 
+                // reset state and start timer
                 this.wallIndex = -1;
                 this.pickupTimer = 30;
 
@@ -228,9 +270,42 @@ var player = function(x, y){
 
     // ---------------------------------------------
     // ---------------------------------------------
+    // if player shoots, handle creating a new laser
+    this.shoot = function(){
+        // but the player can not shoot while picking up a wall
+        if(this.shootTimer === 0 && this.wallIndex === -1){
+            // shoot if press spacebar and can shoot again
+            if (game.keyArray[32] === 1) {
+                this.shootTimer = 15;
+                
+                // update player's sprite
+                this.spriteOffsetX = 0;
+                this.spriteOffsetY = 1;
+
+                // add a new laser based on where player's laser gun is
+                var laserVector = createVector(this.position.x + cos(this.angle - HALF_PI/3)*this.size/4, this.position.y + sin(this.angle - HALF_PI/3)*this.size/4);
+                game.lasers.push(new laser(laserVector.x, laserVector.y, this.angle, true));
+            }
+        }
+
+        // update timer
+        if(this.shootTimer > 0){
+            this.shootTimer--;
+
+            // reset player's sprite
+            if(this.shootTimer === 5){
+                this.spriteOffsetX = 0;
+                this.spriteOffsetY = 0;
+            }
+        }
+    };
+
+    // ---------------------------------------------
+    // ---------------------------------------------
     // update player state according to arrow key presses
     this.update = function(){
         this.move();
         this.pickup();
+        this.shoot();
     };
 };

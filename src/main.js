@@ -6,8 +6,9 @@
 // instantiate global game object
 var game = new gameObject();
 
-// instantiate font
+// instantiate fonts
 var qfont;
+var tfont;
 
 // global images list so can re-use for drawing on 
 // menu and gameplay
@@ -22,10 +23,14 @@ var debug = false;
 function preload(){
     // background
     images.push(loadImage('resources/floor.png'));
-    // character sprite map
+    // sprite maps
     images.push(loadImage('resources/character_map.png'));
+    images.push(loadImage('resources/alien_map.png'));
+    images.push(loadImage('resources/wall_map.png'));
+    images.push(loadImage('resources/turret_map.png'));
     qfont = loadFont('resources/spaceranger.ttf');
-}
+    tfont = loadFont('resources/ds-digi.ttf')
+};
 
 // ---------------------------------------------
 // ---------------------------------------------
@@ -41,9 +46,10 @@ function setup() {
     game.setup();
 
     if(debug){
-        game.menu.state = 4;
         game.loadLevel(0);
+        game.menu.state = 4;
         game.state = 1;
+
     }
 };
 
@@ -70,7 +76,7 @@ mouseReleased = function(){
     if(game.state === 0 || game.state === 1){
         game.menu.updateClick();
     }
-}  
+};
 
 // ---------------------------------------------
 // ---------------------------------------------

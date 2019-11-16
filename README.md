@@ -7,10 +7,11 @@ Create as the final project for ECE 4525 - Video Game Design and Engineering by 
 ## File structure:
 - **/src** - primary source code (javascript) 
 - **/levels** - level designs, structured this way to support a somewhat fluid level implementation mechanism
-- **/resources** - images and fonts
+- **/resources** - sprite maps and fonts
 - **index.html** - holds game canvas in webpage
 - **style.css** - used to format index.hmtl so that the game appears in the screen's center
 
 ## Dependencies:
 - [p5.js](https://p5js.org/)
-- [Quantum font](https://www.dafont.com/gregory-quot-sesohq-quot-ortiz.d7042)
+- [Spaceranger font](https://www.dafont.com/space-ranger.font)
+- [DS Digital font](https://www.dafont.com/ds-digital.font)
