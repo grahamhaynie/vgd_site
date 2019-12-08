@@ -33,8 +33,16 @@ var gameObject = function(){
         // list to hold adversaries
         this.adversaries = [];
 
-        // load levels
-        this.levels.push(new tutorial());
+        // list to hold collectibles
+        this.collectibles = [];
+
+        // list to hold boots to draw
+        this.boots = [];
+        this.numBoots = 0;
+        // draw boots every 10 paces, make them dissapear when timer is 0
+        this.bootDist = 0;
+        this.bootTimer = 120;
+        this.bootSwitch = 1;
 
         // need an offset to draw menu 
         this.backgroundOffset = new createVector(-50, -50);
@@ -51,6 +59,12 @@ var gameObject = function(){
         this.walls = [];
         this.lasers = [];
         this.adversaries = [];
+        this.boots = [];
+        this.numBoots = 0;
+        this.bootDist = 0;
+        this.bootTimer = 30;
+        this.bootSwitch = 1;
+        this.collectibles = [];
 
         this.backgroundOffset = new createVector(-50, -50);
         this.menuDirection = new createVector(0.2, 0.3);
@@ -64,16 +78,26 @@ var gameObject = function(){
         // menu
         if(this.state === 0){
             // draw mars floor background
-            image(images[0], this.backgroundOffset.x, this.backgroundOffset.y, 700, 700);
+            image(imageDict['background'][0], this.backgroundOffset.x, this.backgroundOffset.y, 700, 700);
             this.menu.draw();
         }
 
         // gameplay
         else if(this.state === 1){
             // draw mars floor by stiching together images
-            for(var x = 0; x < this.maxX + images[0].width; x+= images[0].width){
-                for(var y = 0; y < this.maxY + images[0].height; y+= images[0].height){
-                    image(images[0], this.backgroundOffset.x + x, this.backgroundOffset.y + y, 700, 700);
+            for(var x = 0; x < this.maxX + imageDict['background'][0].width; x+= imageDict['background'][0].width){
+                for(var y = 0; y < this.maxY + imageDict['background'][0].height; y+= imageDict['background'][0].height){
+                    image(imageDict['background'][0], this.backgroundOffset.x + x, this.backgroundOffset.y + y, 700, 700);
+                }
+            }
+
+            // draw player boot prints if in frame
+            for(var i = 0; i < this.numBoots; i++){
+                if(this.boots[i].x >= this.centerX - width/2 - this.boots[i].size &&
+                    this.boots[i].x <= this.centerX + width/2 + this.boots[i].size &&
+                    this.boots[i].y >= this.centerY - width/2 - this.boots[i].size && 
+                    this.boots[i].y <= this.centerY + width/2 + this.boots[i].size){
+                        this.boots[i].draw(this.centerX, this.centerY);
                 }
             }
 
@@ -88,13 +112,22 @@ var gameObject = function(){
                 }
             }
 
-            // draw adversaries that are in current frame and health > 0
+            // draw collectibles in current frame 
+            for(var i = 0; i < this.collectibles.length; i++){
+                if(this.collectibles[i].position.x >= this.centerX - width/2 - this.collectibles[i].size &&
+                    this.collectibles[i].position.x <= this.centerX + width/2 + this.collectibles[i].size &&
+                    this.collectibles[i].position.y >= this.centerY - width/2 - this.collectibles[i].size && 
+                    this.collectibles[i].position.y <= this.centerY + width/2 + this.collectibles[i].size){
+                        this.collectibles[i].draw(this.centerX, this.centerY);
+                }
+            }
+            // draw adversaries that are in current frame and health > 0 or drawing defeat animation
             for(var i = 0; i < this.adversaries.length; i++){
                 if(this.adversaries[i].position.x >= this.centerX - width/2 - this.adversaries[i].size &&
                     this.adversaries[i].position.x <= this.centerX + width/2 + this.adversaries[i].size &&
                     this.adversaries[i].position.y >= this.centerY - width/2 - this.adversaries[i].size && 
                     this.adversaries[i].position.y <= this.centerY + width/2 + this.adversaries[i].size &&
-                    this.adversaries[i].health > 0){
+                    (this.adversaries[i].health > 0 || this.adversaries[i].defeatTimer > 0)){
                         this.adversaries[i].draw(this.centerX, this.centerY);
                 }
             }
@@ -109,18 +142,53 @@ var gameObject = function(){
                     this.lasers[i].position.x <= this.centerX + width/2 + 20 &&
                     this.lasers[i].position.y >= this.centerY - width/2 - 20 && 
                     this.lasers[i].position.y <= this.centerY + width/2 + 20){
-                        
                     this.lasers[i].draw(this.centerX, this.centerY);
                 }
             }
 
-            // draw level's next wave title, if applicable
-            if(this.level.state === 1 && this.level.waveNameTimer > 0){
-                this.level.drawWaveName();
-            } 
+            // draw zap lines for lightning turret
+            for(var i = 0; i < this.walls.length; i++){
+                if(this.walls[i] instanceof lighningTurret && this.walls[i].health > 0){
+                    // draw zaplines if timer > 0
+                    if(this.walls[i].zapTimer > 0){
+                        for(var z = 0; z < this.walls[i].zaplines.length; z++){
+                            this.walls[i].zaplines[z].draw(this.centerX, this.centerY);
+                        }
+                    }
+                }
+            }
+
+            // only draw level's next wave title if applicable, but only if not paused
+            if(this.menu.state === 4){
+                if(((this.level instanceof level && this.level.state === 1) || 
+                    (this.level instanceof tutorial && this.level.waveState === 1 ) || 
+                    (this.level instanceof level && this.level.state === 4))   
+                    && this.level.waveNameTimer > 0){
+                    this.level.drawWaveName();
+                } 
+            }
 
             // draw menu box or menu during gameplay
             this.menu.draw();
+
+            // check frameRate 
+            /*if(frameRate() < 30){
+                console.log('WARNING: less than 30 fps');
+            }*/
+        }
+    };
+
+    // ---------------------------------------------
+    // ---------------------------------------------
+    // heal the bases by 5 points when a collectible is collected
+    this.healBases = function(){
+        for(var i = 0; i < this.walls.length; i++){
+            if(this.walls[i] instanceof base){
+                // don't overheal an ddon't heal if base destroyed
+                if(this.walls[i].health > 0 && this.walls[i].health + 2 <= this.walls[i].maxHealth){
+                    this.walls[i].health += 2;
+                }
+            }
         }
     };
 
@@ -150,15 +218,21 @@ var gameObject = function(){
 
             // update player's lasers
             for(var i = 0; i < this.lasers.length; i++){
-                this.lasers[i].update();
                 
-                // if laser hit a wall or out of screen, destroy
-                if(this.lasers[i].hitWall() || this.lasers[i].outOfScreen()){
+                this.lasers[i].update();
+
+                if(this.lasers[i].defeated && this.lasers[i].defeatTimer === 0){
                     this.lasers.splice(i, 1);
+                }else if(!this.lasers[i].defeated){
+                    // if laser hit a wall or out of screen, mark destruction animation
+                    if(this.lasers[i].hitWall() || this.lasers[i].outOfScreen()){
+                        this.lasers[i].defeatTimer = 5;
+                        this.lasers[i].defeated = true;
+                    }
                 }
             }
 
-            // draw adversaries, only ones with health > 0 
+            // update adversaries, only ones with health > 0 
             for(var i = 0; i < this.adversaries.length; i++){
                 if(this.adversaries[i].health > 0){
                     this.adversaries[i].update();
@@ -167,7 +241,50 @@ var gameObject = function(){
                         this.adversaries[i].health = 0;
                     }
                 }
+            }
 
+            // update boots by adding a new one every 100 pixels traveled
+            if(this.bootDist > 40){
+                this.bootDist = 0;
+                if(this.numBoots >= 5){
+                    // splice from boots list
+                    this.boots.splice(this.numBoots - 1, 1);
+                    this.numBoots--;
+                    this.bootTimer = 30;
+                }
+
+                if(this.numBoots < 5){
+                    // push boot to beginning with player's position
+                    this.boots.unshift(new boot(this.player.position.x, this.player.position.y, this.bootSwitch, this.player.angle));
+                    this.bootSwitch *= -1;
+                    this.numBoots++;
+                }
+            }
+            else{
+                this.bootDist += this.player.velocity.mag();
+            }
+
+            // also remove boots when timer expires
+            if(this.bootTimer > 0){
+                this.bootTimer--;
+                if(this.bootTimer === 0){
+                    // splice from boots list if possible
+                    if(this.boots.length > 0){
+                        this.boots.splice(this.numBoots - 1, 1);
+                        this.numBoots--;
+                    }
+                    this.bootTimer = 30;
+                }
+            }
+
+            // update collectibles
+            for(var i = 0; i < this.collectibles.length; i++){
+                this.collectibles[i].update(this.player.position.x, this.player.position.y);
+                // if collectible collected, remove it from list and heal base
+                if(this.collectibles[i].collidesWith(this.player.position.x, this.player.position.y, this.player.size)){
+                    this.collectibles.splice(i, 1);
+                    this.healBases();
+                }
             }
 
             // update walls 
@@ -179,20 +296,19 @@ var gameObject = function(){
             }
 
             // update offset for drawing background
-            this.backgroundOffset.x = -(this.centerX % images[0].width);
-            this.backgroundOffset.y = -(this.centerY % images[0].height);
+            this.backgroundOffset.x = -(this.centerX % imageDict['background'][0].width);
+            this.backgroundOffset.y = -(this.centerY % imageDict['background'][0].height);
 
             // update level
-            if(this.level instanceof tutorial){
-                this.level.play();
+            this.level.play();
 
-                // check if all waves have been completed
-                if(this.level.state === 4 && this.level.helpTextState === 3){
-                    this.menu.state = 6;
-                    this.menu.won = true;
-                }
+            // check if all waves have been completed
+            if((this.level instanceof tutorial && this.level.state == this.level.finalState) 
+               ||(this.level instanceof level && this.level.state === 5)){
+                this.menu.state = 6;
+                this.menu.won = true;
             }
-
+        
             // check if player has lost 
             if(this.numberBases === 0){
                 this.menu.state = 6;
@@ -237,6 +353,10 @@ var gameObject = function(){
                 else if(this.level.tilemap[y][x] === "t"){
                     this.walls.push(new turret(x*40 + 20, y*40 + 20));
                 }
+                // add lightning turret to walls list, since also behaves like wall
+                else if(this.level.tilemap[y][x] === "l"){
+                    this.walls.push(new lighningTurret(x*40 + 20, y*40 + 20));
+                }
                 // player
                 else if(this.level.tilemap[y][x] === "p"){
                     this.player = new player(x*40 + 20, y*40 + 20);
@@ -251,7 +371,12 @@ var gameObject = function(){
     // ---------------------------------------------
     // load level at given index
     this.loadLevel = function(index){
-        this.level = this.levels[index];
+        // load tutorial differently
+        if(index === 0){
+            this.level = new tutorial();
+        }else{ 
+            this.level = new level(levels[index - 1]);
+        }
         this.curLevelIndex = index;
         this.readTileMap();
         this.state = 1;

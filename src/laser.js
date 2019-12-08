@@ -11,6 +11,12 @@ var laser = function(x, y, angle, playerShot){
     this.position = new createVector(x, y);
     this.angle = angle;
 
+    this.size = 8;
+
+    // track defeat so can draw destruction animation
+    this.defeatTimer = 0;
+    this.defeated = false;
+
     // track if laser is shot by player. if so, laser can 
     // not penetrate walls, otherwise a laser can go through
     // walls without causing them damage.
@@ -23,10 +29,20 @@ var laser = function(x, y, angle, playerShot){
         push();
         translate(width/2 - cx + this.position.x, width/2 - cy + this.position.y);
         rotate(this.angle);
-        stroke(20, 201, 35);
-        strokeWeight(4);
-        line(0, 0, 0, -20);
-        strokeWeight(1);
+        
+        // draw differently if defeated
+        if(this.defeatTimer > 0 && this.defeated){
+            noStroke();
+            fill(20, 201, 35);
+            ellipse(0, 0, this.size, this.size);
+        }
+        // otherwise draw as line
+        else{
+            stroke(20, 201, 35);
+            strokeWeight(4);
+            line(0, 0, 0, -20);
+            strokeWeight(1);
+        }
         pop();
     };
 
@@ -34,9 +50,16 @@ var laser = function(x, y, angle, playerShot){
     // ---------------------------------------------
     // update the laser's state
     this.update = function(){
-        // add velocity 
-        var velocity = createVector(cos(this.angle - HALF_PI)*20, sin(this.angle - HALF_PI)*20);
-        this.position.add(velocity);
+        if(!this.defeated){
+            // add velocity 
+            var velocity = createVector(cos(this.angle - HALF_PI)*20, sin(this.angle - HALF_PI)*20);
+            this.position.add(velocity);
+        }else{
+            if(this.defeatTimer > 0){
+                this.defeatTimer--;
+                this.size-= 2;
+            }
+        }
     };
 
     // ---------------------------------------------
@@ -45,8 +68,7 @@ var laser = function(x, y, angle, playerShot){
     this.hitWall = function(){
         if(this.playerShot){
             for(var i = 0; i < game.walls.length; i++){
-                if(game.walls[i].health > 0 && abs(game.walls[i].x - this.position.x) < game.walls[i].size/2 && 
-                abs(game.walls[i].y - this.position.y) < game.walls[i].size/2){
+                if(game.walls[i].health > 0 && game.walls[i].collidesWith(this.position.x, this.position.y, this.size)){
                     return true;
                 }
             }

@@ -19,8 +19,8 @@ var zapline = function(x1, y1, x2, y2){
 
     // ---------------------------------------------
     // ---------------------------------------------
-    // draw zapline by connecting generated points
-    this.draw = function(){
+    // draw zapline by connecting generated points according to center x and y
+    this.draw = function(cx, cy){
         stroke(0, 0, 0, 100);
         strokeWeight(4);
         //line(this.x1, this.y1, this.x2, this.y2);
@@ -28,7 +28,10 @@ var zapline = function(x1, y1, x2, y2){
         // draw points
         stroke(20, 201, 35);
         for(var i = 1; i < this.points.length; i++){
-            line(this.points[i].x, this.points[i].y, this.points[i-1].x, this.points[i-1].y);
+            push();
+            translate(width/2 - cx + this.points[i].x, width/2 - cy + this.points[i].y);
+            line(0, 0, (this.points[i-1].x - this.points[i].x), (this.points[i-1].y - this.points[i].y));
+            pop();
         }
     };
     // ---------------------------------------------

@@ -14,22 +14,70 @@ var tfont;
 // menu and gameplay
 var images = [];
 
+// dictionary to hold images in lists
+var imageDict = {
+    'background': [],
+    'character': [],
+    'tunneler': [],
+    'runner': [],
+    'wall': [],
+    'turret': [],
+    'lightningTurret': [],
+    'boot': [],
+    'collectible': []
+};
+
+// a list containing the levels in JSON format 
+var levels = [];
+
 // debug flag set for rapid developement of levels
 var debug = false;
+
+// ---------------------------------------------
+// ---------------------------------------------
+/* load 300x300 sprite from x*300, y*300 spritemap to image dictionary 
+ * by creating a 2 dimensional array where the first index is the y value, 
+ * and the second is the x value
+ */
+function loadSprite(name, index){
+    var h = images[index].height/300;
+    var w = images[index].width/300;
+    imageDict[name] = new Array(h);
+    for(var y = 0; y < h; y++){
+        imageDict[name][y] = new Array(w);
+        for(var x = 0; x < w; x++){
+            imageDict[name][y][x] = images[index].get(x*300, y*300, 300, 300);
+        }
+    }
+};
 
 // ---------------------------------------------
 // ---------------------------------------------
 // need to load images before program runs
 function preload(){
     // background
-    images.push(loadImage('resources/floor.png'));
-    // sprite maps
-    images.push(loadImage('resources/character_map.png'));
-    images.push(loadImage('resources/alien_map.png'));
-    images.push(loadImage('resources/wall_map.png'));
-    images.push(loadImage('resources/turret_map.png'));
+    imageDict['background'].push(loadImage('resources/floor.png'));
+    
+    // fonts
     qfont = loadFont('resources/spaceranger.ttf');
     tfont = loadFont('resources/ds-digi.ttf')
+    
+    // load to images so can load in setup
+    images.push(loadImage('resources/character_map.png'));
+    images.push(loadImage('resources/tunneler_map.png'));
+    images.push(loadImage('resources/runner_map.png'));
+    images.push(loadImage('resources/wall_map.png'));
+    images.push(loadImage('resources/turret_map.png'));
+    images.push(loadImage('resources/lightning_map.png'));
+    images.push(loadImage('resources/boot_map.png'));
+    images.push(loadImage('resources/collectible_map.png'));
+
+    // load levels json files
+    levels.push(loadJSON('levels/level1.json'));
+    levels.push(loadJSON('levels/level2.json'));
+    levels.push(loadJSON('levels/level3.json'));
+    levels.push(loadJSON('levels/level4.json'));
+    levels.push(loadJSON('levels/level5.json'));
 };
 
 // ---------------------------------------------
@@ -45,11 +93,21 @@ function setup() {
 
     game.setup();
 
+    // load sprites
+    loadSprite('character', 0);
+    loadSprite('tunneler', 1);
+    loadSprite('runner', 2);
+    loadSprite('wall', 3);
+    loadSprite('turret', 4);
+    loadSprite('lightningTurret', 5);
+    loadSprite('boot', 6);
+    loadSprite('collectible', 7);
+
     if(debug){
-        game.loadLevel(0);
+        game.loadLevel(5);
         game.menu.state = 4;
         game.state = 1;
-
+        
     }
 };
 

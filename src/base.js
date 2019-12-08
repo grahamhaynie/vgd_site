@@ -17,6 +17,9 @@
     // track when base has been defeated
     this.defeated = false;
 
+    // show timer for tutorial
+    this.showRedBorder = false;
+
     // ---------------------------------------------
     // ---------------------------------------------
     // draw according to cx, cy where the cx, cy are 
@@ -27,16 +30,21 @@
         translate(width/2 - cx + this.x, width/2 - cy + this.y);
 
         // draw base for now as rectangle
-        stroke(0, 0, 0);
+        if(this.showRedBorder){
+            strokeWeight(4);
+            stroke(201, 20, 35);
+        }else{
+            stroke(0, 0, 0);
+        }
         fill(255, 255, 255);
         rect(-this.size/2, -this.size/2, this.size, this.size);
-
+        strokeWeight(1);
+        stroke(0, 0, 0);
         // draw health bar
         fill(0, 0, 0);
         rect(-this.size/4, -this.size/8, this.size/2, this.size/4);
         fill(20, 201, 35);
         rect(-this.size/4, -this.size/8, this.size/2 * this.health/this.maxHealth, this.size/4);
-
         pop();
     };
 

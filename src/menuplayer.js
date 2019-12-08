@@ -50,7 +50,7 @@ var menuPlayer = function(x, y){
         rotate(this.angle);
         fill(255, 0, 0);
         stroke(0, 0, 0);
-        image(images[1].get(this.spriteOffsetX*300, this.spriteOffsetY*300, 300, 300),-this.size/2, -this.size/2, this.size, this.size);
+        image(imageDict['character'][this.spriteOffsetY][this.spriteOffsetX],-this.size/2, -this.size/2, this.size, this.size);
         
         // if pickup animation, draw a wall
         if(this.pickup){

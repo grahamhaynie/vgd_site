@@ -96,7 +96,7 @@ var menuObject = function(){
     // draw the game's title
     this.drawGameTitle = function(){
         for(var i = 0; i < this.zaplines.length; i++){
-            this.zaplines[i].draw();
+            this.zaplines[i].draw(width/2, height/2);
             this.zaplines[i].update();
         }
     };
@@ -106,7 +106,11 @@ var menuObject = function(){
     // draw a menu box with given dimensions and text, 
     // drawing with different adjustments for a small box
     this.drawMenuBox = function(x, y, w, h, t, small){
-        fill(214, 214, 214);
+        if(t === 'x'){
+            fill(240, 240, 240);
+        }else{
+            fill(214, 214, 214);
+        }
         stroke(0, 0, 0);
         strokeWeight(5);
         textFont(qfont);
@@ -212,45 +216,49 @@ var menuObject = function(){
         }
         // level selection
         else if(this.state === 1){
-            this.drawTitle("Select level:", width/2, 40);
+            this.drawTitle("Select level:", width/2, 80);
+
+            // draw tutorial selection box
+            fill(214, 214, 214);
+            stroke(0, 0, 0);
+            strokeWeight(3);
+            textSize(30);
+            if(this.hover === 'Tutorial'){
+                stroke(20, 201, 35);
+            }
+            rect(width/24, width/4, width/4, width/6, 10);
+            // tutorial level name
+            noStroke();
+            fill(0, 0, 0);
+            text('Tutorial', width/6, width/4 + width/10);
 
             // draw level selection boxes
             // show level name and level difficulty in box
-            for(var x = 0; x < game.levels.length; x++){
-                if(x < 3 ){
+            for(var x = 0; x < levels.length; x++){
+                if(x < 2 ){
                     fill(214, 214, 214);
                     stroke(0, 0, 0);
                     strokeWeight(3);
-                    if(this.hover === 'level' + str(x)){
+                    if(this.hover === 'level' + str(x + 1)){
                         stroke(20, 201, 35);
                     }
-                    rect(x*(width/3) + width/24, width/4, width/4, width/6, 10);
+                    rect((x+1)*(width/3) + width/24, width/4, width/4, width/6, 10);
                     //level name
                     noStroke();
                     fill(0, 0, 0);
-                    text(game.levels[x].name, x*(width/3) + width/6, width/4 + width/12);
-                    // difficuty 
-                    fill(64, 186, 45);
-                    for(var i = 0; i < game.levels[x].difficulty; i++){
-                        ellipse(x*(width/3) + width/6 + i*25 - 50, width/4 + width/8, 15, 15);
-                    }
+                    text(levels[x].name, (x+1)*(width/3) + width/6, width/4 + width/10);
                 }
-                else if(x >= 3 && x < 6){
+                else if(x >= 2 && x < 5){
                     fill(214, 214, 214);
                     stroke(0, 0, 0);
-                    if(this.hover === 'level' + str(x)){
+                    if(this.hover === 'level' + str(x + 1)){
                         stroke(20, 201, 35);
                     }
-                    rect((x-3)*(width/3) + width/24, width/2, width/4, width/6, 10);
+                    rect((x-2)*(width/3) + width/24, width/2, width/4, width/6, 10);
                     //level name
                     noStroke();
                     fill(0, 0, 0);
-                    text(game.levels[x].name, (x - 3)*(width/3) + width/6, width/2 + width/12);
-                    // difficuty 
-                    fill(64, 186, 45);
-                    for(var i = 0; i < game.levels[x].difficulty; i++){
-                        ellipse((x-3)*(width/3) + width/6 + i*25 - 50, width/2 + width/8, 15, 15);
-                    }
+                    text(levels[x].name, (x - 2)*(width/3) + width/6, width/2 + width/10);
                 }
             }
 
@@ -302,11 +310,15 @@ var menuObject = function(){
             // draw differently if player won or lost
             if(this.won){
                 this.drawTitle("Game over!", width/2, 40);
-                this.drawPText('You won! Click the menu button', width/2, 2*(width/10));
-                this.drawPText('below to return to the menu.', width/2, 3*(width/10));
+                this.drawPText('You won! Click the menu button below to', width/2, 2*(width/10));
+                this.drawPText('return to the menu or play the next level', width/2, 3*(width/10));
 
                 // draw return to menu button
-                this.drawMenuBox(3*(width/8), 4*(width/6), width/4, width/12, 'Menu', false);
+                this.drawMenuBox(width/6, 4*(width/6), width/4, width/12, 'Menu', false);
+                // draw next level button if applicable
+                if(game.curLevelIndex < levels.length){
+                    this.drawMenuBox(3*(width/6), 4*(width/6), 3.5*(width/10), width/12, 'Next Level', false);
+                }
             }else{
                 this.drawTitle("Game over!", width/2, 40);
 
@@ -346,6 +358,14 @@ var menuObject = function(){
             if(this.menuReturn){
                 game.reload();
                 game.state = 0;
+            }
+
+            // load next level
+            if(this.loadNext){
+                game.reload();
+                game.loadLevel(this.nextLevel);
+                game.level.reload();
+                this.loadNext = false;
             }
 
             this.state = this.nextState;
@@ -389,42 +409,52 @@ var menuObject = function(){
         // if player is in menu and selects a level, update game's level
         //attempt to load levels, first checking if levels are valid
         else if(this.state === 1 && this.transitionTimer === 0){
+            var clickLevel = false;
             // first row of levels
             if(mouseY > width/4 && mouseY < width/4 + width/6){
                 // first column
                 if(mouseX > width/24 && mouseX < 7*(width/24)){
-                    if(0 < game.levels.length){
-                        this.nextLevel = 0;
-                        this.loadLevel = true;
-                        this.nextState = 4;
-                        this.transitionTimer = 75;
-                        this.transition = true;
-                    }
+                    // click tutorial
+                    this.nextLevel = 0;
+                    clickLevel = true;
                 }
                 // second column
                 else if(mouseX > 9*(width/24)  && mouseX < 15*(width/24)){
-                    if(1 < game.levels.length){
-                        print('1');
+                    if(1 <= levels.length){
+                        this.nextLevel = 1;
+                        clickLevel = true;
                     }
                 }
                 // third column
                 else if(mouseX > 2*(width/3) + width/24 && mouseX < 2*(width/3) + width/24 + width/4){
-                    print('2');
+                    if(2 <= levels.length){
+                        this.nextLevel = 2;
+                        clickLevel = true;
+                    }
                 }
             }
             // second row of levels
             else if(mouseY > width/2 && mouseY < width/2 + width/6){
                 // first column
                 if(mouseX > width/24 && mouseX < 7*(width/24)){
-                    print('3');
+                    if(3 <= levels.length){
+                        this.nextLevel = 3;
+                        clickLevel = true;
+                    }
                 }
                 // second column
                 else if(mouseX > 9*(width/24)  && mouseX < 15*(width/24)){
-                    print('4');
+                    if(4 <= levels.length){
+                        this.nextLevel = 4;
+                        clickLevel = true;
+                    }
                 }
                 // third column
                 else if(mouseX > 2*(width/3) + width/24 && mouseX < 2*(width/3) + width/24 + width/4){
-                    print('5');
+                    if(5 <= levels.length){
+                        this.nextLevel = 5;
+                        clickLevel = true;
+                    }
                 }
 
             }
@@ -435,6 +465,13 @@ var menuObject = function(){
                 this.transitionTimer = 75;
                 this.transition = true;
             }
+            if(clickLevel){
+                this.loadLevel = true;
+                this.nextState = 4;
+                this.transitionTimer = 75;
+                this.transition = true;
+            }
+
             
         }
         //instructions menu
@@ -449,15 +486,13 @@ var menuObject = function(){
             // if click tutorial button, play tutorial
             else if(mouseX > 4*(width/8) && mouseX < 4*(width/8) + width/3
                 && mouseY > 5*(width/6) && mouseY < 5*(width/6) + width/12){
-                if(0 < game.levels.length){
-                    this.nextLevel = 0;
-                    this.loadLevel = true;
-                    this.nextState = 4;
-                    this.transitionTimer = 75;
-                    this.transition = true;
-                }
+                this.nextLevel = 0;
+                this.loadLevel = true;
+                this.nextState = 4;
+                this.transitionTimer = 75;
+                this.transition = true;
+                
             }
-
         }
 
         // menu button during game
@@ -488,12 +523,21 @@ var menuObject = function(){
             // do differently if win or lose
             if(this.won){
                 // return to menu
-                if(mouseX > 3*(width/8) && mouseX < 3*(width/8) + width/4 &&
+                if(mouseX > width/6 && mouseX < width/6 + width/4 &&
                     mouseY > 4*(width/6) && mouseY < 4*(width/6) + width/12){
                     this.nextState = 0;
                     this.transitionTimer = 75;
                     this.transition = true;
                     this.menuReturn = true;
+                }
+                // load next level if possible
+                else if(game.curLevelIndex < levels.length && mouseX > 3*(width/6) && mouseX < 3*(width/6) + 3.5*(width/10) &&
+                    mouseY > 4*(width/6) && mouseY < 4*(width/6) + width/12){
+                    this.loadNext = true;
+                    this.nextLevel = game.curLevelIndex + 1;
+                    this.nextState = 4;
+                    this.transitionTimer = 75;
+                    this.transition = true;
                 }
             }else{
                 // return to menu
@@ -546,7 +590,7 @@ var menuObject = function(){
             if(mouseY > width/4 && mouseY < width/4 + width/6){
                 // first column
                 if(mouseX > width/24 && mouseX < 7*(width/24)){
-                    this.hover = 'level0';
+                    this.hover = 'Tutorial';
                 }
                 // second column
                 else if(mouseX > 9*(width/24)  && mouseX < 15*(width/24)){
@@ -627,9 +671,12 @@ var menuObject = function(){
         // game over menu
         else if(this.state === 6){
             if(this.won){
-                if(mouseX > 3*(width/8) && mouseX < 3*(width/8) + width/4 &&
+                if(mouseX > width/6 && mouseX < width/6 + width/4 &&
                     mouseY > 4*(width/6) && mouseY < 4*(width/6) + width/12){
                     this.hover = 'Menu';
+                }else if(game.curLevelIndex < levels.length && mouseX > 3*(width/6) && mouseX < 3*(width/6) + 3.5*(width/10) &&
+                    mouseY > 4*(width/6) && mouseY < 4*(width/6) + width/12){
+                    this.hover = 'Next Level';
                 }else{
                     this.hover = '';
                 }

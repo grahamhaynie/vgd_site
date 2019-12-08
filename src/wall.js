@@ -18,6 +18,10 @@ var wall = function(x, y){
     
     // offset for accessing sprite map
     this.spriteOffsetX = 0;
+    this.spriteOffsetY = 0;
+
+    // show timer for tutorial
+    this.showRedBorder = false;
 
     // ---------------------------------------------
     // ---------------------------------------------
@@ -27,15 +31,19 @@ var wall = function(x, y){
     this.draw = function(cx, cy){
         push();
         translate(width/2 - cx + this.x, width/2 - cy + this.y);
-        if(this.highlightTimer > 0){
+        if(this.highlightTimer > 0 || this.showRedBorder){
             strokeWeight(4);
-            stroke(20, 201, 35);
+            if(this.highlightTimer > 0){
+                stroke(20, 201, 35);
+            }else{
+                stroke(201, 20, 35);
+            }
             noFill();
-            image(images[3].get(this.spriteOffsetX*300, 0, 300, 300), -this.size/2, -this.size/2, this.size, this.size);
+            image(imageDict['wall'][this.spriteOffsetY][this.spriteOffsetX], -this.size/2, -this.size/2, this.size, this.size);
             rect(-this.size/2 + 2, -this.size/2 + 2, this.size - 4, this.size - 4);
             strokeWeight(1);
         }else{
-            image(images[3].get(this.spriteOffsetX*300, 0, 300, 300), -this.size/2, -this.size/2, this.size, this.size);
+            image(imageDict['wall'][this.spriteOffsetY][this.spriteOffsetX], -this.size/2, -this.size/2, this.size, this.size);
         }
         pop();
     };
@@ -47,7 +55,7 @@ var wall = function(x, y){
         fill(82, 74, 63);
         stroke(0, 0, 0);
         fill(82, 74, 63);
-        image(images[3].get(this.spriteOffsetX*300, 0, 300, 300), -this.size/2, -this.size*1.5, this.size, this.size);
+        image(imageDict['wall'][this.spriteOffsetY][this.spriteOffsetX], -this.size/2, -this.size*1.5, this.size, this.size);
     };
 
 

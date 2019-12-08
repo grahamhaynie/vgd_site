@@ -13,7 +13,7 @@ var player = function(x, y){
     this.angle = 0;
     this.velocity = new createVector(0, 0);
     this.acceleration = new createVector(0, 0);
-    this.drag = 0.825;
+    this.drag = 0.8;
 
     // offset for drawing appropriate sprite
     this.spriteOffsetX = 0;
@@ -41,6 +41,27 @@ var player = function(x, y){
         this.rectX = round((this.position.x + aheadVector.x - (this.position.x + aheadVector.x) % 40)/40 );
         this.rectY = round((this.position.y + aheadVector.y - (this.position.y + aheadVector.y) % 40)/40 );
 
+        // if place is colliding with player, move until not colliding
+        if(abs(this.rectX*40 + 20 - this.position.x) <= this.size/2 + 20 && abs(this.rectY*40 + 20 - this.position.y) <= this.size/2 + 20){
+            // add to y if x overlap closer
+            if(abs(this.rectX*40 + 20 - this.position.x) < abs(this.rectY*40 + 20 - this.position.y)){
+                if(this.rectY*40 + 20 > this.position.y){
+                    this.rectY += 1;
+                }else{
+                    this.rectY -= 1;
+                }
+            }
+            // add to x if y overlap closer
+            else{
+                if(this.rectX*40 + 20 > this.position.x){
+                    this.rectX += 1;
+                }else{
+                    this.rectX -= 1;
+                }
+            }
+            
+        }
+
         // check if position is within game boundary
         if(this.rectX !== -1 && this.rectX <= (game.maxX -20)/40 && this.rectY !== -1 && this.rectY <= (game.maxY -20)/40){
             this.validPosition = true;
@@ -61,11 +82,6 @@ var player = function(x, y){
                 this.validPosition = false;
             }
         }
-
-        // check that position is not colliding with player
-        if(abs(this.rectX*40 + 20 - this.position.x) <= this.size/2 + 20 && abs(this.rectY*40 + 20 - this.position.y) <= this.size/2 + 20){
-            this.validPosition = false;
-        }
     };
 
     // ---------------------------------------------
@@ -85,7 +101,7 @@ var player = function(x, y){
                 stroke(20, 201, 35);
 
                 // if player is placing a turret, show the range of that turret
-                if(game.walls[this.wallIndex] instanceof turret){
+                if(game.walls[this.wallIndex] instanceof turret || game.walls[this.wallIndex] instanceof lighningTurret){
                     ellipse(this.rectX*40 + 20, this.rectY*40 + 20, game.walls[this.wallIndex].range, game.walls[this.wallIndex].range);
                 }
 
@@ -104,7 +120,8 @@ var player = function(x, y){
         rotate(this.angle);
         fill(255, 0, 0);
         stroke(0, 0, 0);
-        image(images[1].get(this.spriteOffsetX*300, this.spriteOffsetY*300, 300, 300),-this.size/2, -this.size/2, this.size, this.size);
+        //image(images[1].get(this.spriteOffsetX*300, this.spriteOffsetY*300, 300, 300),-this.size/2, -this.size/2, this.size, this.size);        
+        image(imageDict['character'][this.spriteOffsetY][this.spriteOffsetX],-this.size/2, -this.size/2, this.size, this.size);
 
         // draw wall in player's hand
         if(this.wallIndex != -1){
@@ -180,31 +197,10 @@ var player = function(x, y){
             // check if can highlight block, but only if block not picked up
             // also check that wall is of wall type or turret
             if(game.walls[i].health > 0 && game.walls[i].collidesWith(aheadVector.x, aheadVector.y, this.size/4) && this.wallIndex === -1 
-                && (game.walls[i] instanceof wall || game.walls[i] instanceof turret)){
+                && (game.walls[i] instanceof wall || game.walls[i] instanceof turret || game.walls[i] instanceof lighningTurret)){
                 this.highlightIndex = i;
             }
         }
-        /*
-        // check collision with adversaries
-        for(var i = 0; i < game.adversaries.length; i++){
-            // check for collision of y portion of velocity vector
-            // if collide, set y velocity to zero
-            if(game.adversaries[i].collidesWith(this.position.x, this.position.y + this.velocity.y, this.size)){
-                this.velocity.y = 0; 
-            }
-
-            // check for collision with x portion of velocity. 
-            // if collide, set x velocity to zero
-            if(game.adversaries[i].collidesWith(this.position.x + this.velocity.x, this.position.y, this.size)){
-                this.velocity.x = 0; 
-            }
-
-            // check collision both x and y
-            if(game.adversaries[i].collidesWith(this.position.x + this.velocity.x, this.position.y + this.velocity.y, this.size)){
-                this.velocity.x = 0; 
-                this.velocity.y = 0; 
-            }
-        }*/
         
         // also make sure player does not leave map 
         if(this.position.x + this.velocity.x < 0 || this.position.x + this.velocity.x > game.maxX){
@@ -237,7 +233,7 @@ var player = function(x, y){
                 this.pickupTimer = 30;
 
                 // when player has picked up a wall, they move slower
-                this.drag = 0.7;
+                this.drag = 0.6;
 
                 // update sprite
                 this.spriteOffsetX = 1;
